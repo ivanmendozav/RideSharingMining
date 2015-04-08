@@ -1,0 +1,24 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp" >
+    <Button android:id="@+id/send_button"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:text="@string/start"
+        android:layout_alignParentRight="true"
+        android:onClick="enableSensors" />
+<EditText
+    android:id="@+id/edit_message"
+    android:layout_width="fill_parent"
+    android:layout_height="50dp" android:layout_below="@+id/send_button"
+    android:textColor="#ffffffff"
+    android:textSize="@dimen/abc_text_size_large_material"
+    android:typeface="normal" />
+
+
+
+</RelativeLayout>
+

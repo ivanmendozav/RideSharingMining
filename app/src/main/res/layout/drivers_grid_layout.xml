@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:stretchColumns="*">
+
+    <TableRow
+        android:layout_width="fill_parent">
+
+        <TextView
+            android:text="New Text"
+            android:id="@+id/txtName" />
+
+        <TextView
+            android:text="New Text"
+            android:id="@+id/txtDistance"/>
+
+        <TextView
+            android:text="New Text"
+            android:id="@+id/txtTime"/>
+
+        <TextView
+            android:text="New Text"
+            android:id="@+id/txtRating" />
+    </TableRow>
+
+</TableLayout>
