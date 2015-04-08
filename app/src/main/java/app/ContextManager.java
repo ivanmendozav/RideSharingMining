@@ -23,6 +23,11 @@ import java.util.List;
  * RELATIVE HUMIDITY 12
  * AMBIENT TEMPERATURE 13
  * TYPE_STEP_DETECTOR 18
+ *
+ * Pseudo sensors
+ * BATTERY 90
+ * WIFI 91
+ * GPS 92
  */
 public class ContextManager {
     private SensorManager mSensorManager;
