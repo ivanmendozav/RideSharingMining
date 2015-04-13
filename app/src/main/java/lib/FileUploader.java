@@ -1,17 +1,13 @@
-package app;
+package lib;
 
 import android.os.AsyncTask;
 import android.os.Environment;
-
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.FileEntity;
-import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -38,6 +34,7 @@ public class FileUploader extends AsyncTask<String, Void, String> {
         // Asynchronous task in background to upload files
         protected String doInBackground(String[] params) {
             try{
+                System.out.println("preparing "+this.files.size()+" files to upload.");
                 //Upload each registered file
                 Iterator<String> it = this.files.iterator();
                 int i =0;
@@ -45,7 +42,6 @@ public class FileUploader extends AsyncTask<String, Void, String> {
                     this.UploadByPost(it.next(), (int) this.IDs.get(i));
                     i++;
                 }
-                System.out.println(this.files.size()+" files uploaded OK!");
             }catch(Exception e){
                 System.out.println(e.toString());
             }

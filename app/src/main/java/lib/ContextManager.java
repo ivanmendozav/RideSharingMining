@@ -1,4 +1,4 @@
-package app;
+package lib;
 
 import android.content.Context;
 import android.hardware.Sensor;

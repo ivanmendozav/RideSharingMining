@@ -1,4 +1,4 @@
-package com.ridesharingmining.www.ridesharingmining;
+package com.ridesharingmining.www.activities;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;
