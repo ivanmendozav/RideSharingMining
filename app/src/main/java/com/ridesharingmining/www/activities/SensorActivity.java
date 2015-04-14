@@ -1,6 +1,9 @@
 package com.ridesharingmining.www.activities;
 
 import android.app.Activity;
+import android.app.ActivityManager;
+import android.content.Context;
+import android.content.Intent;
 import android.hardware.Sensor;
 import android.os.Bundle;
 import android.os.Environment;
@@ -14,8 +17,7 @@ import listeners.BatteryReceiver;
 import lib.ContextManager;
 import lib.FileUploader;
 import listeners.WifiReceiver;
-import listeners.GPSListener;
-import listeners.SensorListener;
+import services.SensorService;
 
 /**
  * Created by Ivan on 19/03/2015.
@@ -25,8 +27,6 @@ public class SensorActivity extends Activity{// implements SensorEventListener {
     private ContextManager contextManager;
     private boolean sensorFlag;
     private boolean justCreated;
-    private GPSListener gpsListener;
-    private SensorListener sensorListener;
 
     @Override
     public final void onCreate(Bundle savedInstanceState) {
@@ -34,11 +34,13 @@ public class SensorActivity extends Activity{// implements SensorEventListener {
         setContentView(R.layout.activity_sensors);
         this.contextManager = new ContextManager(this);
         this.sensorFlag = false; //do not start until button is clicked
-        this.justCreated = true;
-        //instantiate sensors
-        this.sensorListener = new SensorListener(this.contextManager);
-        //instantiate GPS
-        this.gpsListener = new GPSListener(this);
+
+        //if coming from a notification
+        if(isMyServiceRunning()) {
+            this.justCreated = false;
+            this.onClickStart(true);
+        }else
+            this.justCreated = true;
     }
 
     @Override
@@ -47,17 +49,7 @@ public class SensorActivity extends Activity{// implements SensorEventListener {
      */
     protected void onResume() {
         super.onResume();
-        if (justCreated == false) { //if window was just created do not start (wait for button)
-            sensorFlag = true;
-            Button start_button = (Button) findViewById(R.id.start_button);
-            TextView title = (TextView) findViewById(R.id.txtTitle);
-            start_button.setText(R.string.stop);
-            title.setText(R.string.sensing);
-            this.sensorListener.start();
-            this.gpsListener.start();
-        }
     }
-
 
     @Override
     /**
@@ -65,15 +57,38 @@ public class SensorActivity extends Activity{// implements SensorEventListener {
      */
     protected void onPause() {
         super.onPause();
-            sensorFlag = false;
+    }
+
+    /**
+     * Change UI according to nwe state
+     * @param running
+     */
+    protected void onClickStart(boolean running){
+        if (justCreated == false) { //if window was just created do not start (wait for button)
+            sensorFlag = true;
+            if(running == false) {
+                this.startAsyncService();
+            }
             Button start_button = (Button) findViewById(R.id.start_button);
             TextView title = (TextView) findViewById(R.id.txtTitle);
-            this.sensorListener.pause();
-            this.gpsListener.pause();
-            //Upload files asynchronously
-            this.uploadAllFiles();
-            title.setText(R.string.begining);
-            start_button.setText(R.string.start);
+            start_button.setText(R.string.stop);
+            title.setText(R.string.sensing);
+        }
+    }
+
+    /**
+     * Change UI according to nwe state
+     */
+    protected void onClickStop(){
+        super.onPause();
+        sensorFlag = false;
+        //Upload files asynchronously
+        this.stopAsyncService();
+        this.uploadAllFiles();
+        Button start_button = (Button) findViewById(R.id.start_button);
+        TextView title = (TextView) findViewById(R.id.txtTitle);
+        start_button.setText(R.string.start);
+        title.setText(R.string.beginning);
     }
 
     /*
@@ -132,8 +147,39 @@ public class SensorActivity extends Activity{// implements SensorEventListener {
     public void onToggle(View view){
         justCreated = false;
         if(sensorFlag) //if running
-            this.onPause(); //stop
+            this.onClickStop(); //stop
         else
-            this.onResume();
+            this.onClickStart(false);
+    }
+
+    /**
+     * Check whether the service is running
+     * @return
+     */
+    private boolean isMyServiceRunning() {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (SensorService.class.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Start the service
+     */
+    public void startAsyncService() {
+        if(!isMyServiceRunning()) {
+            Intent service = new Intent(this, SensorService.class);
+            startService(service);
+        }
+    }
+
+    public void stopAsyncService() {
+        if(isMyServiceRunning()) {
+            Intent service = new Intent(this, SensorService.class);
+            stopService(service);
+        }
     }
 }

@@ -1,6 +1,6 @@
 package listeners;
 
-import android.app.Activity;
+import android.content.Context;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Environment;
@@ -19,17 +19,17 @@ import static com.google.android.gms.common.GooglePlayServicesUtil.isGooglePlayS
  * Created by Ivan on 13/04/2015.
  */
 public class GPSListener implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
-    private Activity activity;
+    private Context context;
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
 
     /**
      * Constructor
-     * @param activity
+     * @param context
      */
-    public GPSListener(Activity activity){
+    public GPSListener(Context context){
         super();
-        this.activity = activity;
+        this.context = context;
         this.buildGoogleApiClient();
     }
 
@@ -53,8 +53,8 @@ public class GPSListener implements GoogleApiClient.ConnectionCallbacks, GoogleA
      * Prepare for location services
      */
     protected synchronized void buildGoogleApiClient() {
-        if (isGooglePlayServicesAvailable(this.activity)== 	ConnectionResult.SUCCESS) {
-            this.mGoogleApiClient = new GoogleApiClient.Builder(this.activity)
+        if (isGooglePlayServicesAvailable(this.context)== 	ConnectionResult.SUCCESS) {
+            this.mGoogleApiClient = new GoogleApiClient.Builder(this.context)
                     .addConnectionCallbacks(this)
                     .addOnConnectionFailedListener(this)
                     .addApi(LocationServices.API)

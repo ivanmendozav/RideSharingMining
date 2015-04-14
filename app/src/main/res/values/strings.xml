@@ -1,17 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Ride Sharing Miner</string>
-    <string name="edit_message">Enter a message</string>
-    <string name="button_send">Send</string>
-    <string name="action_settings">Settings</string>
-    <string name="title_activity_main">MainActivity</string>
-    <string name="title_activity_display_message_activity">Message</string>
-    <string name="title_activity_sensor_activity">Sensor Data</string>
-    <string name="hello_world">Hello world!</string>
-    <string name="action_search">Search</string>
-    <string name="sensing">Scaning data from sensors. Press STOP to finish.</string>
-    <string name="begining">Press START to begin.</string>
+    <string name="app_name">Ride Miner</string>
+    <string name="title_activity_sensor_activity">Ride Miner</string>
+    <string name="sensing">Scanning data from sensors. Press STOP to finish.</string>
+    <string name="beginning">Press START to begin.</string>
     <string name="uploading">Uploading files in background.. Press START to re-scan.</string>
-    <string name="start">START</string>
     <string name="stop">STOP</string>
+    <string name="notification_title">Ride Miner</string>
+    <string name="notification_text">Service is running</string>
+    <string name="start">START</string>
 </resources>

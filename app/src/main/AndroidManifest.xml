@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.ridesharingmining.www.activities" >
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.ridesharingmining.www.activities" >
+    <!-- permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
@@ -11,37 +11,18 @@
     <uses-permission android:name="android.permission.BATTERY_STATS" />
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/icon"
         android:label="@string/app_name"
         android:theme="@style/Theme.AppCompat">
-        <!--<activity-->
-            <!--android:name=".MainActivity"-->
-            <!--android:label="@string/app_name" >-->
-            <!--<intent-filter>-->
-                <!--<action android:name="android.intent.action.MAIN" />-->
-                <!--<category android:name="android.intent.category.LAUNCHER" />-->
-            <!--</intent-filter>-->
-        <!--</activity>-->
-        <!--<activity-->
-        <!--android:name=".DisplayMessageActivity"-->
-        <!--android:label="@string/title_activity_display_message_activity"-->
-        <!--android:parentActivityName="com.ridesharingmining.www.ridesharingmining.MainActivity" >-->
-        <!--<meta-data-->
-            <!--android:name="android.support.PARENT_ACTIVITY"-->
-            <!--android:value="com.ridesharingmining.www.ridesharingmining.MainActivity" />-->
-
-    <!--</activity>-->
+        <!--activities-->
         <activity
             android:name="com.ridesharingmining.www.activities.SensorActivity"
             android:label="@string/title_activity_sensor_activity"
             android:parentActivityName="com.ridesharingmining.www.activities.SensorActivity" >
-            <!--<meta-data-->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-                <!--android:name="android.support.PARENT_ACTIVITY"-->
-                <!--android:value="com.ridesharingmining.www.ridesharingmining.MainActivity" />-->
         </activity>
         <!-- Receive Wi-Fi connection state changes -->
         <receiver android:name="listeners.WifiReceiver">
@@ -55,8 +36,13 @@
                 <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED"/>
             </intent-filter>
         </receiver>
-        <meta-data android:name="com.google.android.gms.version"
-            android:value="@integer/google_play_services_version" />
+        <!-- services -->
+        <service
+		  android:name="services.SensorService"
+		  android:icon="@drawable/icon"
+		  android:label="Ride Miner"
+		  >
+		</service>
+        <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version" />
     </application>
-
 </manifest>

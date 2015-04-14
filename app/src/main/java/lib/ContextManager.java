@@ -51,62 +51,62 @@ public class ContextManager {
         List<Sensor> sensors = new ArrayList<>();
         s = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         if (s != null){
-            System.out.println("TYPE_ACCELEROMETER sensor is present");
+            //System.out.println("TYPE_ACCELEROMETER sensor is present");
             sensors.add(s);
         }
         s = mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE);
         if (s != null){
-            System.out.println("TYPE_AMBIENT_TEMPERATURE sensor is present");
+            //System.out.println("TYPE_AMBIENT_TEMPERATURE sensor is present");
             sensors.add(s);
         }
         s = mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
         if (s != null){
-            System.out.println("TYPE_GRAVITY fields sensor is present");
+            //System.out.println("TYPE_GRAVITY fields sensor is present");
             sensors.add(s);
         }
         s = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
         if (s != null){
-            System.out.println("TYPE_GYROSCOPE fields sensor is present");
+            //System.out.println("TYPE_GYROSCOPE fields sensor is present");
             sensors.add(s);
         }
         s = mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
         if (s != null){
-            System.out.println("TYPE_LIGHT fields sensor is present");
+            //System.out.println("TYPE_LIGHT fields sensor is present");
             sensors.add(s);
         }
         s = mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
         if (s != null){
-            System.out.println("TYPE_LINEAR_ACCELERATION fields sensor is present");
+            //System.out.println("TYPE_LINEAR_ACCELERATION fields sensor is present");
             sensors.add(s);
         }
         s = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         if (s != null){
-            System.out.println("TYPE_MAGNETIC_FIELD fields sensor is present");
+            //System.out.println("TYPE_MAGNETIC_FIELD fields sensor is present");
             sensors.add(s);
         }
         s = mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
         if (s != null){
-            System.out.println("TYPE_PRESSURE fields sensor is present");
+            //System.out.println("TYPE_PRESSURE fields sensor is present");
             sensors.add(s);
         }
         s = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
         if (s != null){
-            System.out.println("TYPE_PROXIMITY fields sensor is present");
+            //System.out.println("TYPE_PROXIMITY fields sensor is present");
             sensors.add(s);
         }
         s = mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
         if (s != null){
-            System.out.println("TYPE_RELATIVE_HUMIDITY fields sensor is present");
+            //System.out.println("TYPE_RELATIVE_HUMIDITY fields sensor is present");
             sensors.add(s);
         }
         s = mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
         if (s != null){
-            System.out.println("TYPE_ROTATION_VECTOR fields sensor is present");
+            //System.out.println("TYPE_ROTATION_VECTOR fields sensor is present");
             sensors.add(s);
         }
         s = mSensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR);
         if (s != null){
-            System.out.println("TYPE_STEP_DETECTOR fields sensor is present");
+            //System.out.println("TYPE_STEP_DETECTOR fields sensor is present");
             sensors.add(s);
         }
         return sensors;
