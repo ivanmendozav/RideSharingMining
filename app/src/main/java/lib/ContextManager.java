@@ -40,7 +40,6 @@ public class ContextManager {
     public SensorManager getSensorManager(){
         return mSensorManager;
     }
-    public WifiManager getWifiManager(Context context) {return (WifiManager) context.getSystemService(Context.WIFI_SERVICE);}
 
     /**
      * Retrieves list of available sensors in device (present and working)

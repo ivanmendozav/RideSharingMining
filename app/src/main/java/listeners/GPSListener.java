@@ -130,4 +130,8 @@ public class GPSListener implements GoogleApiClient.ConnectionCallbacks, GoogleA
             e.printStackTrace();
         }
     }
+
+    public synchronized static int getType(){
+        return 92;
+    }
 }

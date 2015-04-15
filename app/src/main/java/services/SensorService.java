@@ -9,7 +9,13 @@ import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import com.ridesharingmining.www.activities.R;
 import com.ridesharingmining.www.activities.SensorActivity;
+
+import java.util.Timer;
+import java.util.TimerTask;
+
 import lib.ContextManager;
+import lib.FileUploader;
+import lib.ParameterSettings;
 import listeners.GPSListener;
 import listeners.SensorListener;
 
@@ -21,6 +27,8 @@ public class SensorService extends Service {
     private SensorListener sensorListener;
     private GPSListener gpsListener;
     private Resources resources;
+    private static FileUploader uploader;
+    private Timer timer;
 
     @Override
     /**
@@ -28,9 +36,7 @@ public class SensorService extends Service {
      */
     public void onCreate(){
         this.contextManager = new ContextManager(this);
-        //instantiate sensors
         this.sensorListener = new SensorListener(this.contextManager);
-        //instantiate GPS
         this.gpsListener = new GPSListener(this);
         this.resources = this.getBaseContext().getResources();
     }
@@ -49,6 +55,7 @@ public class SensorService extends Service {
         this.displayNotification();
         this.sensorListener.start();
         this.gpsListener.start();
+        this.startAutoSync();
         return Service.START_REDELIVER_INTENT;
     }
 
@@ -60,9 +67,34 @@ public class SensorService extends Service {
         super.onDestroy();
         this.sensorListener.pause();
         this.gpsListener.pause();
-        //issue notification
-        NotificationManager mNotifyMgr =  (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        mNotifyMgr.cancel(R.id.notification_id);
+        this.stopAutoSync();
+        this.removeNotification();
+    }
+
+    protected void startAutoSync(){
+        this.timer = new Timer();
+        final ContextManager c =  this.contextManager;
+
+        this.timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                //check whether there are files to be uploaded
+                FileUploader _uploader = new FileUploader();
+                synchronized (_uploader) {
+                    _uploader.uploadAllFiles(c);
+                }
+            }
+        }, ParameterSettings.TimerInterval, ParameterSettings.TimerInterval);
+    }
+
+    /**
+     * Stop the timer
+     */
+    private void stopAutoSync() {
+        if (this.timer != null) {
+            this.timer.cancel();
+            this.timer = null;
+        }
     }
 
     /**
@@ -74,12 +106,21 @@ public class SensorService extends Service {
         PendingIntent resultPendingIntent = PendingIntent.getActivity(  this,  0,  resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         //display the notification
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this);
-        mBuilder.setSmallIcon(R.drawable.icon);
+        mBuilder.setSmallIcon(R.drawable.icon_notification);
         mBuilder.setContentTitle(resources.getString(R.string.notification_title));
         mBuilder.setContentText(resources.getString(R.string.notification_text));
         mBuilder.setContentIntent(resultPendingIntent);
+        mBuilder.setOngoing(true);
         //issue notification
         NotificationManager mNotifyMgr =  (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         mNotifyMgr.notify(R.id.notification_id, mBuilder.build());
+    }
+
+    /**
+     * Remove from notification bar
+     */
+    protected void removeNotification(){
+        NotificationManager mNotifyMgr =  (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        mNotifyMgr.cancel(R.id.notification_id);
     }
 }

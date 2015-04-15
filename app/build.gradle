@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "com.ridesharingmining.www.ridesharingmining"
-        minSdkVersion 19 //ICS
+        minSdkVersion 16 //JB
         targetSdkVersion 21 //Lollipop
         versionCode 1
         versionName "1.0"

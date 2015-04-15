@@ -1,5 +1,6 @@
 package lib;
 
+import android.hardware.Sensor;
 import android.os.AsyncTask;
 import android.os.Environment;
 import org.apache.http.HttpResponse;
@@ -17,24 +18,30 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
+
+import listeners.BatteryReceiver;
+import listeners.GPSListener;
+import listeners.WifiReceiver;
 
 /**
  * Created by Ivan on 01/04/2015.
  * Procedures to upload sensor files (of current date) to a web server
  */
 public class FileUploader extends AsyncTask<String, Void, String> {
-    protected String WEB_SERVER_URL = "http://10.0.2.2:88/ridesharingmining/receive.php";
+    protected String WEB_SERVER_URL = ParameterSettings.ServerUrl;
     protected List<String> files = new ArrayList<>(); //all file names
     protected List<Integer> IDs = new ArrayList<>(); //all sensor ids
-    private int userId;
+    private int userId = 12;
 
     @Override
         // Asynchronous task in background to upload files
         protected String doInBackground(String[] params) {
             try{
-                System.out.println("preparing "+this.files.size()+" files to upload.");
+                if(this.files.size()>0)
+                    System.out.println("preparing "+this.files.size()+" files to upload.");
                 //Upload each registered file
                 Iterator<String> it = this.files.iterator();
                 int i =0;
@@ -52,38 +59,13 @@ public class FileUploader extends AsyncTask<String, Void, String> {
      * Register a new filename to upload later
      * @param filename
      */
-    public void registerFile(String filename){
+    protected void registerFile(String filename){
         this.files.add(filename);
     }
 
-    public void registerSensorID(int sensorID){
+    protected void registerSensorID(int sensorID){
         this.IDs.add(sensorID);
     }
-    /**
-     * @deprecated
-     * Upload a single file in binary format (not suitable for PHP server-side scripts)
-     * @param filename
-     */
-    protected void Upload(String filename) {
-        String url = WEB_SERVER_URL; //to local machine
-        File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath()+"/Documents/",
-                filename);
-        try {
-            HttpClient httpclient = new DefaultHttpClient();
-            HttpPost httppost = new HttpPost(url);
-            FileEntity reqEntity = new FileEntity(file, "binary/octet-stream");
-            reqEntity.setContentType("binary/octet-stream");
-            reqEntity.setChunked(true); // Send in multiple parts if needed
-            httppost.setEntity(reqEntity);
-            HttpResponse response = httpclient.execute(httppost);
-
-            String res = EntityUtils.toString(response.getEntity());
-            System.out.println(res);
-        } catch (Exception e) {
-            System.out.println(e.toString());
-        }
-    }
-
     /**
      * To upload a file via POST method to a Web server (by creating a form input file)
      * @param filename
@@ -100,6 +82,7 @@ public class FileUploader extends AsyncTask<String, Void, String> {
         String lineEnd = "\r\n";
         String twoHyphens = "--";
         String boundary = "*****";
+        String response_text = "";
 
         int bytesRead, bytesAvailable, bufferSize;
         byte[] buffer;
@@ -161,15 +144,18 @@ public class FileUploader extends AsyncTask<String, Void, String> {
                 while ((ch = is.read()) != -1) {
                     sb.append((char) ch);
                 }
-                System.out.println(sb.toString());
+                response_text = sb.toString();
+                System.out.println(response_text);
                 is.close();
             }
             fileInputStream.close();
             outputStream.flush();
             outputStream.close();
             //Delete file
-            File myfile = new File(selectedPath);
-            boolean deleted = myfile.delete();
+            if(response_text.contains("uploaded")) {
+                File myfile = new File(selectedPath);
+                boolean deleted = myfile.delete();
+            }
 
         } catch (Exception ex) {
             System.out.println("Error uploading file: "+filename);
@@ -178,5 +164,49 @@ public class FileUploader extends AsyncTask<String, Void, String> {
 
     public void setUserId(int user_id) {
         this.userId = user_id;
+    }
+
+    public void uploadAllFiles(ContextManager contextManager){
+        String Batteryfilename = BatteryReceiver.getFileName();
+        String Wififilename = WifiReceiver.getFileName();
+        String now = Calendar.getInstance().get(Calendar.YEAR)+""+(Calendar.getInstance().get(Calendar.MONTH)+1)+""+Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
+        String locationfilename = "location_"+now+".txt";
+
+        //Register Battery file to uploading task
+        File Batfile = new File(Environment.getExternalStorageDirectory().getAbsolutePath()+"/Documents/",Batteryfilename);
+        if (Batfile.exists()) {
+            this.registerFile(Batteryfilename);
+            this.registerSensorID(BatteryReceiver.getType());
+        }
+
+        //Register Wifi file to uploading task
+        File Wififile = new File(Environment.getExternalStorageDirectory().getAbsolutePath()+"/Documents/",Wififilename);
+        if (Wififile.exists()) {
+            this.registerFile(Wififilename); //Wifi activity
+            this.registerSensorID(WifiReceiver.getType());
+        }
+
+        //Register GPS updates
+        File GPSfile = new File(Environment.getExternalStorageDirectory().getAbsolutePath()+"/Documents/",locationfilename);
+        if (GPSfile.exists()) {
+            this.registerFile(locationfilename);
+            this.registerSensorID(GPSListener.getType());
+        }
+
+        //Register sensor files
+        Iterator<Sensor> it = contextManager.getSensors().iterator();
+        while(it.hasNext()){
+            int sensorID = it.next().getType();
+            String filename = contextManager.getSensorFileName(sensorID);
+            File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath()+"/Documents/",filename);
+            if (file.exists()) {
+                this.registerFile(filename); //Battery
+                this.registerSensorID(sensorID);
+            }
+        }
+        //upload all existing files (and overwrite)
+        if(this.files.size() > 0) {
+           this.execute();
+        }
     }
 }

@@ -12,6 +12,7 @@ import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
 import lib.ContextManager;
+import lib.ParameterSettings;
 
 
 /**
@@ -39,7 +40,7 @@ public class SensorListener implements SensorEventListener {
     public void start(){
         Iterator<Sensor> it = this.sensors.iterator();
         while (it.hasNext()) {
-            mSensorManager.registerListener(this, it.next(), SensorManager.SENSOR_DELAY_NORMAL);
+            mSensorManager.registerListener(this, it.next(), ParameterSettings.SensorDelay);
         }
     }
 
