@@ -12,7 +12,11 @@ import com.google.android.gms.location.LocationServices;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.text.DecimalFormat;
 import java.util.Calendar;
+
+import lib.ParameterSettings;
+
 import static com.google.android.gms.common.GooglePlayServicesUtil.isGooglePlayServicesAvailable;
 
 /**
@@ -22,6 +26,7 @@ public class GPSListener implements GoogleApiClient.ConnectionCallbacks, GoogleA
     private Context context;
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
+    private String lastPoint = ""; //to discard redundant points (consecutive points with
 
     /**
      * Constructor
@@ -62,7 +67,7 @@ public class GPSListener implements GoogleApiClient.ConnectionCallbacks, GoogleA
             // Create the LocationRequest object
             this.mLocationRequest = LocationRequest.create()
                     .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-                    .setInterval(10 * 1000) // 10 seconds, in milliseconds
+                    .setInterval(ParameterSettings.GPSPointsInterval) // 10 seconds, in milliseconds
                     .setFastestInterval(1 * 1000); // 1 second, in milliseconds
         }
     }
@@ -72,8 +77,13 @@ public class GPSListener implements GoogleApiClient.ConnectionCallbacks, GoogleA
      * @param mLastLocation
      */
     protected void readLocation(Location mLastLocation){
+        DecimalFormat f = new DecimalFormat("##.00000");
+        String lastRecord = String.valueOf(f.format(mLastLocation.getLatitude()))+","+String.valueOf(f.format(mLastLocation.getLongitude()));
         String string = String.valueOf(mLastLocation.getLatitude())+","+String.valueOf(mLastLocation.getLongitude())+","+String.valueOf(mLastLocation.getAltitude())+","+String.valueOf(mLastLocation.getTime());
-        logText(string);
+        if(!lastRecord.equalsIgnoreCase(this.lastPoint)) {
+            logText(string);
+            this.lastPoint = lastRecord;
+        }
     }
 
     @Override
@@ -109,9 +119,7 @@ public class GPSListener implements GoogleApiClient.ConnectionCallbacks, GoogleA
         try {
             File external = Environment.getExternalStorageDirectory(); //external to share to other apps later
             String sdcardPath = external.getPath();
-            String now = Calendar.getInstance().get(Calendar.YEAR)+""+(Calendar.getInstance().get(Calendar.MONTH)+1)+""+Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
-            String FILENAME = "location_"+now+".txt";
-            //String sdcardPath = "C:/Users/Ivan/AndroidStudioProjects/RideSharingMining";
+            String FILENAME = this.getFileName();
 
             File dir = new File(sdcardPath+"/Documents");
             File file = new File(sdcardPath+"/Documents/"+FILENAME);
@@ -133,5 +141,10 @@ public class GPSListener implements GoogleApiClient.ConnectionCallbacks, GoogleA
 
     public synchronized static int getType(){
         return 92;
+    }
+
+    public synchronized static String getFileName(){
+        //String now = Calendar.getInstance().get(Calendar.YEAR)+""+(Calendar.getInstance().get(Calendar.MONTH)+1)+""+Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
+        return "location_"+".txt";
     }
 }

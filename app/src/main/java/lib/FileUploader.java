@@ -34,7 +34,7 @@ public class FileUploader extends AsyncTask<String, Void, String> {
     protected String WEB_SERVER_URL = ParameterSettings.ServerUrl;
     protected List<String> files = new ArrayList<>(); //all file names
     protected List<Integer> IDs = new ArrayList<>(); //all sensor ids
-    private int userId = 12;
+    private String username = "anonymous";
 
     @Override
         // Asynchronous task in background to upload files
@@ -109,7 +109,7 @@ public class FileUploader extends AsyncTask<String, Void, String> {
             outputStream.writeBytes(twoHyphens + boundary + lineEnd);
             outputStream.writeBytes("Content-Disposition: form-data; name=\"user_id\"" + lineEnd);
             outputStream.writeBytes(lineEnd);
-            outputStream.writeBytes(String.valueOf(this.userId));
+            outputStream.writeBytes(String.valueOf(this.username));
             outputStream.writeBytes(lineEnd);
             outputStream.writeBytes(twoHyphens + boundary + lineEnd);
             outputStream.writeBytes("Content-Disposition: form-data; name=\"uploadedfile\";filename=\"" + selectedPath + "\"" + lineEnd);
@@ -162,15 +162,14 @@ public class FileUploader extends AsyncTask<String, Void, String> {
         }
     }
 
-    public void setUserId(int user_id) {
-        this.userId = user_id;
+    public void setUserId(String username) {
+        this.username = username;
     }
 
     public void uploadAllFiles(ContextManager contextManager){
         String Batteryfilename = BatteryReceiver.getFileName();
         String Wififilename = WifiReceiver.getFileName();
-        String now = Calendar.getInstance().get(Calendar.YEAR)+""+(Calendar.getInstance().get(Calendar.MONTH)+1)+""+Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
-        String locationfilename = "location_"+now+".txt";
+        String locationfilename = GPSListener.getFileName();
 
         //Register Battery file to uploading task
         File Batfile = new File(Environment.getExternalStorageDirectory().getAbsolutePath()+"/Documents/",Batteryfilename);
@@ -194,16 +193,16 @@ public class FileUploader extends AsyncTask<String, Void, String> {
         }
 
         //Register sensor files
-        Iterator<Sensor> it = contextManager.getSensors().iterator();
-        while(it.hasNext()){
-            int sensorID = it.next().getType();
-            String filename = contextManager.getSensorFileName(sensorID);
-            File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath()+"/Documents/",filename);
-            if (file.exists()) {
-                this.registerFile(filename); //Battery
-                this.registerSensorID(sensorID);
-            }
-        }
+//        Iterator<Sensor> it = contextManager.getSensors().iterator();
+//        while(it.hasNext()){
+//            int sensorID = it.next().getType();
+//            String filename = contextManager.getSensorFileName(sensorID);
+//            File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath()+"/Documents/",filename);
+//            if (file.exists()) {
+//                this.registerFile(filename); //Battery
+//                this.registerSensorID(sensorID);
+//            }
+//        }
         //upload all existing files (and overwrite)
         if(this.files.size() > 0) {
            this.execute();

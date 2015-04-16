@@ -117,8 +117,8 @@ public class ContextManager {
      * @return
      */
     public String getSensorFileName(int sensorID){
-        String now = Calendar.getInstance().get(Calendar.YEAR)+""+(Calendar.getInstance().get(Calendar.MONTH)+1)+""+Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
-        String filename = sensorID+"_"+now+".txt";
+        //String now = Calendar.getInstance().get(Calendar.YEAR)+""+(Calendar.getInstance().get(Calendar.MONTH)+1)+""+Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
+        String filename = sensorID+"_.txt";
         return filename;
     }
 }

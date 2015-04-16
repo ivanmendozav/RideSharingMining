@@ -24,7 +24,7 @@ import listeners.SensorListener;
  */
 public class SensorService extends Service {
     private ContextManager contextManager;
-    private SensorListener sensorListener;
+//    private SensorListener sensorListener;
     private GPSListener gpsListener;
     private Resources resources;
     private static FileUploader uploader;
@@ -36,7 +36,7 @@ public class SensorService extends Service {
      */
     public void onCreate(){
         this.contextManager = new ContextManager(this);
-        this.sensorListener = new SensorListener(this.contextManager);
+        //this.sensorListener = new SensorListener(this.contextManager);
         this.gpsListener = new GPSListener(this);
         this.resources = this.getBaseContext().getResources();
     }
@@ -53,7 +53,7 @@ public class SensorService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent,flags,startId);
         this.displayNotification();
-        this.sensorListener.start();
+//        this.sensorListener.start();
         this.gpsListener.start();
         this.startAutoSync();
         return Service.START_REDELIVER_INTENT;
@@ -65,10 +65,15 @@ public class SensorService extends Service {
      */
     public void onDestroy() {
         super.onDestroy();
-        this.sensorListener.pause();
+//        this.sensorListener.pause();
         this.gpsListener.pause();
         this.stopAutoSync();
         this.removeNotification();
+        //last check whether there were files to be uploaded
+        FileUploader _uploader = new FileUploader();
+        synchronized (_uploader) {
+            _uploader.uploadAllFiles(this.contextManager);
+        }
     }
 
     protected void startAutoSync(){

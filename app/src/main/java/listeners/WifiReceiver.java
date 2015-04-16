@@ -71,8 +71,8 @@ public class WifiReceiver extends BroadcastReceiver {
      * @return
      */
     public synchronized static String getFileName(){
-        String now = Calendar.getInstance().get(Calendar.YEAR)+""+(Calendar.getInstance().get(Calendar.MONTH)+1)+""+Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
-        String filename = "Wifi_"+now+".txt";
+        //String now = Calendar.getInstance().get(Calendar.YEAR)+""+(Calendar.getInstance().get(Calendar.MONTH)+1)+""+Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
+        String filename = "Wifi_"+".txt";
         return filename;
     }
 

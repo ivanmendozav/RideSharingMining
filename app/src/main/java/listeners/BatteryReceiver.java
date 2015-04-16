@@ -92,8 +92,8 @@ public class BatteryReceiver extends BroadcastReceiver {
      * @return
      */
     public synchronized static String getFileName(){
-        String now = Calendar.getInstance().get(Calendar.YEAR)+""+(Calendar.getInstance().get(Calendar.MONTH)+1)+""+Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
-        String filename = "Battery_"+now+".txt";
+        //String now = Calendar.getInstance().get(Calendar.YEAR)+""+(Calendar.getInstance().get(Calendar.MONTH)+1)+""+Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
+        String filename = "Battery_"+".txt";
         return filename;
     }
 
