@@ -66,9 +66,9 @@ public class GPSListener implements GoogleApiClient.ConnectionCallbacks, GoogleA
                     .build();
             // Create the LocationRequest object
             this.mLocationRequest = LocationRequest.create()
-                    .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                    .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY) //block level accuracy
                     .setInterval(ParameterSettings.GPSPointsInterval) // 10 seconds, in milliseconds
-                    .setFastestInterval(1 * 1000); // 1 second, in milliseconds
+                    .setFastestInterval(ParameterSettings.GPSPointsInterval/6); // 1 second, in milliseconds
         }
     }
 

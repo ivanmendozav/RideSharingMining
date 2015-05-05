@@ -5,6 +5,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import com.ridesharingmining.www.activities.R;
@@ -17,7 +18,6 @@ import lib.ContextManager;
 import lib.FileUploader;
 import lib.ParameterSettings;
 import listeners.GPSListener;
-import listeners.SensorListener;
 
 /**
  * Created by Ivan on 14/04/2015.
@@ -29,6 +29,15 @@ public class SensorService extends Service {
     private Resources resources;
     private static FileUploader uploader;
     private Timer timer;
+    private String username;
+
+    /**
+     * Creates an IntentService.  Invoked by your subclass's constructor.
+     *
+     */
+    public SensorService() {
+        super();
+    }
 
     @Override
     /**
@@ -46,19 +55,31 @@ public class SensorService extends Service {
         return null;
     }
 
+   /* @Override
+    protected void onHandleIntent(Intent intent) {
+        Bundle b = intent.getExtras();
+        this.username = b.getString("USERNAME");
+
+        this.displayNotificationIcon();
+        this.gpsListener.start();
+        this.startAutoSync();
+    }*/
+
     @Override
     /**
      * Run the service (start listening)
      */
     public int onStartCommand(Intent intent, int flags, int startId) {
+        Bundle b = intent.getExtras();
+        this.username = b.getString("USERNAME");
+
         super.onStartCommand(intent,flags,startId);
-        this.displayNotification();
+        this.displayNotificationIcon();
 //        this.sensorListener.start();
         this.gpsListener.start();
         this.startAutoSync();
         return Service.START_REDELIVER_INTENT;
     }
-
     @Override
     /**
      * Stop the service (pause sensors)
@@ -68,17 +89,17 @@ public class SensorService extends Service {
 //        this.sensorListener.pause();
         this.gpsListener.pause();
         this.stopAutoSync();
-        this.removeNotification();
+        this.removeNotificationIcon();
         //last check whether there were files to be uploaded
         FileUploader _uploader = new FileUploader();
         synchronized (_uploader) {
-            _uploader.uploadAllFiles(this.contextManager);
+            _uploader.uploadAllFiles(this.username);
         }
     }
 
     protected void startAutoSync(){
         this.timer = new Timer();
-        final ContextManager c =  this.contextManager;
+        final String c =  this.username;
 
         this.timer.scheduleAtFixedRate(new TimerTask() {
             @Override
@@ -105,7 +126,7 @@ public class SensorService extends Service {
     /**
      * Display icon on notification bar
      */
-    protected void displayNotification(){
+    protected void displayNotificationIcon(){
         //When clicked go to this activity
         Intent resultIntent = new Intent(this, SensorActivity.class);
         PendingIntent resultPendingIntent = PendingIntent.getActivity(  this,  0,  resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -124,7 +145,7 @@ public class SensorService extends Service {
     /**
      * Remove from notification bar
      */
-    protected void removeNotification(){
+    protected void removeNotificationIcon(){
         NotificationManager mNotifyMgr =  (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         mNotifyMgr.cancel(R.id.notification_id);
     }

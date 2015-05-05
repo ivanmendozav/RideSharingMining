@@ -7,7 +7,11 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
+
+import java.util.Calendar;
+
 import lib.ContextManager;
 import services.SensorService;
 
@@ -55,6 +59,9 @@ public class SensorActivity extends Activity{// implements SensorEventListener {
      */
     protected void onClickStart(boolean running){
         sensorFlag = true;
+        //disable text box
+        EditText txtId = (EditText) findViewById(R.id.txtId);
+        txtId.setEnabled(false);
         //start service
         if(running == false) {
             this.startAsyncService();
@@ -72,6 +79,9 @@ public class SensorActivity extends Activity{// implements SensorEventListener {
     protected void onClickStop(){
         super.onPause();
         sensorFlag = false;
+        //disable text box
+        EditText txtId = (EditText) findViewById(R.id.txtId);
+        txtId.setEnabled(true);
         //stop service
         this.stopAsyncService();
         //Update UI
@@ -111,8 +121,12 @@ public class SensorActivity extends Activity{// implements SensorEventListener {
      */
     public void startAsyncService() {
         if(!isMyServiceRunning()) {
+            EditText txtId = (EditText) findViewById(R.id.txtId);
             Intent service = new Intent(this, SensorService.class);
+            service.putExtra("USERNAME",txtId.getText().toString() );
             startService(service);
+            if(isMyServiceRunning())
+                this.writeLog(R.string.service_has_started);
         }
     }
 
@@ -123,6 +137,19 @@ public class SensorActivity extends Activity{// implements SensorEventListener {
         if(isMyServiceRunning()) {
             Intent service = new Intent(this, SensorService.class);
             stopService(service);
+            if(!isMyServiceRunning())
+                this.writeLog(R.string.service_has_stopped);
         }
+    }
+
+    /**
+     * Add text to log textview
+     * @param resourceId
+     */
+    protected void writeLog(int resourceId){
+        TextView txtLog = (TextView) findViewById(R.id.txtLog);
+        String current_text = txtLog.getText().toString();
+        Calendar now = Calendar.getInstance();
+        txtLog.setText(current_text + now.getTime() + " " + getResources().getText(resourceId) + "\n");
     }
 }

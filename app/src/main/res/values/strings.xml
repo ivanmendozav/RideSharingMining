@@ -3,10 +3,12 @@
     <string name="app_name">Ride Miner</string>
     <string name="title_activity_sensor_activity">Ride Miner</string>
     <string name="sensing">Scanning data from sensors. Press STOP to finish.</string>
-    <string name="beginning">Press START to begin.</string>
+    <string name="beginning">Enter you ID in the box below and Press START to begin.</string>
     <string name="uploading">Uploading files in background.. Press START to re-scan.</string>
     <string name="stop">STOP</string>
     <string name="notification_title">Ride Miner</string>
     <string name="notification_text">Service is running</string>
     <string name="start">START</string>
+    <string name="service_has_started">Service has been started.</string>
+    <string name="service_has_stopped">Service has stopped.</string>
 </resources>

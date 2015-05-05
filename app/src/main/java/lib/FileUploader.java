@@ -107,7 +107,7 @@ public class FileUploader extends AsyncTask<String, Void, String> {
             outputStream.writeBytes(String.valueOf(sensor_id));
             outputStream.writeBytes(lineEnd);
             outputStream.writeBytes(twoHyphens + boundary + lineEnd);
-            outputStream.writeBytes("Content-Disposition: form-data; name=\"user_id\"" + lineEnd);
+            outputStream.writeBytes("Content-Disposition: form-data; name=\"username\"" + lineEnd);
             outputStream.writeBytes(lineEnd);
             outputStream.writeBytes(String.valueOf(this.username));
             outputStream.writeBytes(lineEnd);
@@ -166,7 +166,8 @@ public class FileUploader extends AsyncTask<String, Void, String> {
         this.username = username;
     }
 
-    public void uploadAllFiles(ContextManager contextManager){
+    public void uploadAllFiles(String username){
+        this.username = username;
         String Batteryfilename = BatteryReceiver.getFileName();
         String Wififilename = WifiReceiver.getFileName();
         String locationfilename = GPSListener.getFileName();
