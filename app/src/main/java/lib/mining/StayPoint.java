@@ -20,7 +20,9 @@ public class StayPoint {
     protected long departure; // time(po)
     protected int cardinality; // |S|
     protected String label; //optional description (if filled in by the user)
+    protected GpsPoint startPoint = null; //pm
     protected long stay_time;
+    public long id; //for database storage
 
     /**
      * Constructor
@@ -31,13 +33,14 @@ public class StayPoint {
      * @param cardinality
      * @param label
      */
-    public StayPoint(double avg_longitude, double avg_latitude, long arrival,long departure, int cardinality, String label){
+    public StayPoint(double avg_longitude, double avg_latitude, long arrival,long departure, int cardinality, String label, GpsPoint startPoint){
         this.avg_longitude = avg_longitude;
         this.avg_latitude = avg_latitude;
         this.arrival = arrival;
         this.departure = departure;
         this.cardinality = cardinality;
         this.label = label;
+        this.startPoint = startPoint;
         this.stay_time = Math.abs(departure - arrival);
     }
 
@@ -67,5 +70,33 @@ public class StayPoint {
 
     public long getStay_time() {
         return stay_time;
+    }
+
+    public GpsPoint getStartPoint() {
+        return startPoint;
+    }
+
+    public void setDeparture(long departure) {
+        this.departure = departure;
+    }
+
+    public void setCardinality(int cardinality) {
+        this.cardinality = cardinality;
+    }
+
+    /**
+     * Tells whether two stay points in log G start from the same start_point.
+     * sp1.start = sp2.start, sp1.departure < sp2.departure, and sp1 & sp2 belongs to G
+     * then sp1 is subset of sp2. Where sp.start = pm.timestamp
+     * @param set
+     * @return
+     */
+    public boolean IsSubsetOf(StayPoint set){
+        if ((this.departure < set.getDeparture()) && (this.startPoint.IsSameAs(set.getStartPoint()))) {
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 }

@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import lib.ContextManager;
+
 /**
  * Created by Ivan on 05/05/2015.
  * Set of n Gps points<lon,lat,timestamp> = {p1,p2,..,pn-1,pn} measured within a time interval
@@ -11,7 +13,6 @@ import java.util.List;
  */
 public class GpsLog {
     protected List<GpsPoint> gps_points;
-
     public GpsLog(){
         this.gps_points = new ArrayList<>();
     }
@@ -21,6 +22,10 @@ public class GpsLog {
      */
     public void AddPoint(GpsPoint gps_point){
         this.gps_points.add(gps_point);
+    }
+
+    public void setGps_points(List<GpsPoint> gps_points) {
+        this.gps_points = gps_points;
     }
 
     public List<GpsPoint> getGps_points() {
@@ -55,6 +60,7 @@ public class GpsLog {
      * Default values are k = 0 and n = length of log
      * A stay point requires distance(pm, pi) <= delta.  For time(pm)< time(pi)< time(pi)<=po
      * And also that time(po)- time(pm) >= epsilon
+     * Moreover keep track of last pm's time (start point where last analysis[pm-po] was interrupted so it can continue from it)
      */
     public List<StayPoint> GetStayPoints(int k, int n){
         List<StayPoint> stay_points = new ArrayList<>();
@@ -62,19 +68,21 @@ public class GpsLog {
         boolean debug = ModelParameters.debug_mode;
         double delta = ModelParameters.distance_threshold;
         double epsilon = ModelParameters.time_threshold;
+        long start = System.currentTimeMillis();
 
-        GpsLog subset_log = new GpsLog(); //set of points {pm,.., po} that form a stay point
-        int m = k; int o = 0; GpsPoint po = null;
+        GpsLog subset_log = null; //set of points {pm,.., po} that form a stay point
+        int m = k; int o = 0;
+        GpsPoint po = null;GpsPoint pm = null; GpsPoint pi = null;
 
         while(m < n-1){
             //for two successive points
-            GpsPoint pm = this.getPoint(m);
+            subset_log = new GpsLog();
+            pm = this.getPoint(m);
             int i = m+1; //pm < pi <po
-            GpsPoint pi = this.getPoint(i);
+            pi = this.getPoint(i);
 
             //count next points within a distance lower than delta
             while(ModelFormulas.GCDistance(pm, pi) <= delta && i<n){
-                if(debug){ writeLog(m + "-->" + i);}
                 o = i; po = this.getPoint(o); //last point po under requirements
                 subset_log.AddPoint(pi);
                 i++; if(i<n) {pi = this.getPoint(i);}
@@ -92,18 +100,18 @@ public class GpsLog {
                     long arrival = pm.getTimestamp();
                     long departure = po.getTimestamp();
                     int cardinality = subset_log.length();
-                    StayPoint stay = new StayPoint(avg_longitude,avg_latitude,arrival,departure,cardinality, null);
+                    StayPoint stay = new StayPoint(avg_longitude,avg_latitude,arrival,departure,cardinality, "", pm);
                     stay_points.add(stay);
-                    if(debug){ writeLog("Stay point:" + m + "-->" + o + " :" + avg_latitude + "," +
+                    if(debug){ ContextManager.writeAppLog("Stay point:" + arrival + "-->" + departure + " :" + avg_latitude + "," +
                             avg_longitude + "(" + stay_time + "ms)");}
                 }
             }
             m = i; // proceed searching from last visited point
-            subset_log = new GpsLog();
         }
+        if(debug){ContextManager.writeAppLog(stay_points.size() + " stay point(s) were identified.");
+            ContextManager.writeAppLog("Finished in " + String.valueOf(System.currentTimeMillis() - start) + "ms");}
         return stay_points;
     }
-
 
     /**
      * Returns point in $index position (zero-based)
@@ -150,15 +158,7 @@ public class GpsLog {
      * Size of the log (number of points in it)
      * @return int
      */
-    protected int length(){
+    public int length(){
         return this.gps_points.size();
-    }
-
-    /**
-     * Should send errors to internal log
-     * @param text
-     */
-    protected void writeLog(String text){
-        System.out.println("Android: "+text);
     }
 }

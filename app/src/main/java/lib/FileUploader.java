@@ -1,14 +1,8 @@
 package lib;
 
-import android.hardware.Sensor;
 import android.os.AsyncTask;
 import android.os.Environment;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.FileEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.util.EntityUtils;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -18,7 +12,6 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
 
@@ -145,25 +138,42 @@ public class FileUploader extends AsyncTask<String, Void, String> {
                     sb.append((char) ch);
                 }
                 response_text = sb.toString();
-                System.out.println(response_text);
+                ContextManager.writeAppLog(response_text);
+                //System.out.println(response_text);
                 is.close();
             }
             fileInputStream.close();
             outputStream.flush();
             outputStream.close();
+
             //Delete file
-            if(response_text.contains("uploaded")) {
-                File myfile = new File(selectedPath);
-                boolean deleted = myfile.delete();
-            }
+            File my_file = new File(selectedPath);
+            my_file.delete();
+
 
         } catch (Exception ex) {
-            System.out.println("Error uploading file: "+filename);
+            ContextManager.writeAppLog("Error uploading file: "+filename );
+            //System.out.println("Error uploading file: "+filename);
         }
     }
 
     public void setUserId(String username) {
         this.username = username;
+    }
+
+    /**
+     * Uploads one single file to the cloud
+     * @param username account identifier for clouding services
+     * @param filename file to upload (will replace old records)
+     */
+    public void uploadFile(String username, String filename, int sensorID){
+        this.username = username;
+        File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath()+"/Documents/",filename);
+        if (file.exists()) {
+            this.registerFile(filename);
+            this.registerSensorID(sensorID);
+            this.execute();
+        }
     }
 
     public void uploadAllFiles(String username){

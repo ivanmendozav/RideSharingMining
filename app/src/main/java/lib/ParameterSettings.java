@@ -9,4 +9,7 @@ public class ParameterSettings {
     public static int SensorDelay = 1*1000*1000;// 1 second (in microseconds) if another app gets a GPS point earlier
     //public static Str+ing ServerUrl = "http://10.0.2.2:88/ridesharingmining/receive.php"; //local
     public static String ServerUrl = "http://www.proyectomed.org/receive.php"; //server (godaddy)
+    public static String LogFile = "error_log.txt";
+    public static int LastEvents = 10; //number of last events to display when starting the app
+    public static int StayPointsSensorID = 100; //pseudo sensor id to identify data from stay points detector
 }

@@ -13,9 +13,11 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.text.DecimalFormat;
-import java.util.Calendar;
+import java.util.List;
 
 import lib.ParameterSettings;
+import lib.db.GpsDataObject;
+import lib.mining.GpsPoint;
 
 import static com.google.android.gms.common.GooglePlayServicesUtil.isGooglePlayServicesAvailable;
 
@@ -77,13 +79,17 @@ public class GPSListener implements GoogleApiClient.ConnectionCallbacks, GoogleA
      * @param mLastLocation
      */
     protected void readLocation(Location mLastLocation){
-        DecimalFormat f = new DecimalFormat("##.00000");
-        String lastRecord = String.valueOf(f.format(mLastLocation.getLatitude()))+","+String.valueOf(f.format(mLastLocation.getLongitude()));
-        String string = String.valueOf(mLastLocation.getLatitude())+","+String.valueOf(mLastLocation.getLongitude())+","+String.valueOf(mLastLocation.getAltitude())+","+String.valueOf(mLastLocation.getTime());
-        if(!lastRecord.equalsIgnoreCase(this.lastPoint)) {
-            logText(string);
-            this.lastPoint = lastRecord;
-        }
+//            DecimalFormat f = new DecimalFormat("##.00000");
+//            String lastRecord = String.valueOf(f.format(mLastLocation.getLatitude())) + "," + String.valueOf(f.format(mLastLocation.getLongitude()));
+//            String string = String.valueOf(mLastLocation.getLatitude()) + "," + String.valueOf(mLastLocation.getLongitude()) + "," + String.valueOf(mLastLocation.getAltitude()) + "," + String.valueOf(mLastLocation.getTime());
+            //        if(!lastRecord.equalsIgnoreCase(this.lastPoint)) {
+            //logText(string);
+            GpsPoint p = new GpsPoint(mLastLocation.getLongitude(), mLastLocation.getLatitude(), mLastLocation.getAltitude(), mLastLocation.getTime());
+            GpsDataObject DAO = GpsDataObject.GetInstance(this.context);
+            if(!DAO.isLocked())
+                DAO.Persist(p);
+            //this.lastPoint = lastRecord;
+//        }
     }
 
     @Override
@@ -133,6 +139,9 @@ public class GPSListener implements GoogleApiClient.ConnectionCallbacks, GoogleA
             out.write(string+"\n"); //CSV format with line break between measures
             out.close();
             filewriter.close();
+
+            //Store to database
+
 
         } catch (Exception e) {
             e.printStackTrace();

@@ -42,4 +42,18 @@ public class GpsPoint {
         this.altitude = altitude;
         this.timestamp = timestamp;
     }
+
+    /**
+     * Tells whether two gps points are identical
+     * @param p
+     * @return
+     */
+    public boolean IsSameAs(GpsPoint p){
+        if( (this.longitude == p.getLongitude()) && (this.latitude == p.getLatitude()) && (this.timestamp == p.getTimestamp())) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 }

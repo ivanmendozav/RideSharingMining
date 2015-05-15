@@ -35,6 +35,16 @@ public class SensorActivity extends Activity{// implements SensorEventListener {
         if(isMyServiceRunning()) { //if coming from a notification
             this.onClickStart(true);
         }
+        this.updateLog();
+    }
+
+    /**
+     * Shows last ten events recorded in log file
+     */
+    private void updateLog() {
+        TextView txtLog = (TextView) findViewById(R.id.txtLog);
+        String text = ContextManager.readAppLog(false);
+        txtLog.setText(text);
     }
 
     @Override
@@ -125,8 +135,9 @@ public class SensorActivity extends Activity{// implements SensorEventListener {
             Intent service = new Intent(this, SensorService.class);
             service.putExtra("USERNAME",txtId.getText().toString() );
             startService(service);
-            if(isMyServiceRunning())
+            if(isMyServiceRunning()) {
                 this.writeLog(R.string.service_has_started);
+            }
         }
     }
 
@@ -149,7 +160,8 @@ public class SensorActivity extends Activity{// implements SensorEventListener {
     protected void writeLog(int resourceId){
         TextView txtLog = (TextView) findViewById(R.id.txtLog);
         String current_text = txtLog.getText().toString();
-        Calendar now = Calendar.getInstance();
-        txtLog.setText(current_text + now.getTime() + " " + getResources().getText(resourceId) + "\n");
+        ContextManager.writeAppLog(String.valueOf(getResources().getText(resourceId)));
+        String text = android.text.format.DateFormat.format("yyyy-MM-dd hh:mm:ss",Calendar.getInstance().getTime()) + " "+String.valueOf(getResources().getText(resourceId))+"\n";
+        txtLog.setText(current_text + text);
     }
 }
