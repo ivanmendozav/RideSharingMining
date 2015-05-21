@@ -6,18 +6,14 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
+import android.widget.EditText;
+
 import com.ridesharingmining.www.activities.R;
 import com.ridesharingmining.www.activities.SensorActivity;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Timer;
@@ -26,12 +22,12 @@ import java.util.TimerTask;
 import lib.ContextManager;
 import lib.FileUploader;
 import lib.ParameterSettings;
-import lib.db.AbstractDataObject;
-import lib.db.AppSQLiteHelper;
 import lib.db.GpsDataObject;
+import lib.db.PrefeDataObject;
 import lib.db.StayPointDataObject;
 import lib.mining.CsvParser;
 import lib.mining.GpsLog;
+import lib.mining.GpsPoint;
 import lib.mining.ModelParameters;
 import lib.mining.StayPoint;
 import listeners.GPSListener;
@@ -95,7 +91,8 @@ public class SensorService extends Service {
 //        this.sensorListener.start();
         this.gpsListener.start();
         this.startAutoSync();
-        return Service.START_REDELIVER_INTENT;
+        this.rememberUser();
+        return Service.START_STICKY;
     }
     @Override
     /**
@@ -128,25 +125,30 @@ public class SensorService extends Service {
         GpsLog gps_log = new GpsLog();
         GpsDataObject gps_DAO = GpsDataObject.GetInstance(context);
         if(!gps_DAO.isLocked()) {
-            gps_log.setGps_points(gps_DAO.GetAll());
+            gps_log.setGps_points(gps_DAO.GetAll(null));
             if (gps_log.length() > 0) {
                 //store stay points in database
                 List<StayPoint> stay_points = gps_log.GetStayPoints(0, gps_log.length());
+                gps_log = null; //release memory
                 StayPointDataObject stay_point_DAO = StayPointDataObject.GetInstance(context);
                 Iterator<StayPoint> it = stay_points.iterator();
                 while(it.hasNext()){
                     StayPoint sp = it.next();
                     sp.id = stay_point_DAO.Persist(sp); //add new stay point (or update last one)
                 }
-                 //delete all processed data before last stay point
+                 //backup delete all processed data before last stay point
                 if(stay_points.size() > 0) {
-                    int affected = gps_DAO.Purge(stay_points.get(stay_points.size() - 1).getArrival());
+                    long lastStop = stay_points.get(stay_points.size() - 1).getArrival();
+                    stay_points = null; //release memory
+                    //backup gsp points to server
+                    SensorService.uploadTracesToCloud(context, username, lastStop);
+
+                    int affected = gps_DAO.Purge(lastStop);
                     if (affected > 0){
                         if(debug) ContextManager.writeAppLog(affected + " points were purged.");}
                 }
-
-                //upload to server
-                SensorService.uploadToCloud(context,username);
+                //upload stay points to server
+                SensorService.uploadStaysToCloud(context, username);
             }
         }
     }
@@ -156,7 +158,7 @@ public class SensorService extends Service {
      * @param context
      * @param username
      */
-    public synchronized static void uploadToCloud(Context context, String username){
+    public synchronized static void uploadStaysToCloud(Context context, String username){
         String filename = ModelParameters.csv_stay_points;
         StayPointDataObject DAO = StayPointDataObject.GetInstance(context);
         List<StayPoint> stay_points = DAO.GetAll();
@@ -165,6 +167,35 @@ public class SensorService extends Service {
         synchronized (_uploader) {
             _uploader.uploadFile(username,filename, ParameterSettings.StayPointsSensorID); //file will be removed here
         }
+    }
+
+    /**
+     * Synchronize with server
+     * @param context
+     * @param username
+     */
+    public synchronized static void uploadTracesToCloud(Context context, String username, long timestamp){
+        String filename = GPSListener.getFileName();
+        GpsDataObject DAO = GpsDataObject.GetInstance(context);
+        List<GpsPoint> gps_points = DAO.GetAll(null);
+        if(gps_points.size()>0) {
+            CsvParser.PersistGpsPoints(gps_points);
+            FileUploader _uploader = new FileUploader();
+            synchronized (_uploader) {
+                _uploader.uploadFile(username, filename, GPSListener.getType()); //file will be removed here
+            }
+        }
+    }
+
+    /**
+     * Store username in database for further use in next session
+     */
+    private void rememberUser() {
+        PrefeDataObject preferences = PrefeDataObject.GetInstance(this);
+        String stored_user = preferences.Get("user");
+        if(stored_user == null){
+            preferences.Set("user", username);
+        }else{preferences.Update("user", username);}
     }
 
     /**

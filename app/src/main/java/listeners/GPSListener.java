@@ -2,6 +2,7 @@ package listeners;
 
 import android.content.Context;
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Environment;
 import com.google.android.gms.common.ConnectionResult;
@@ -68,7 +69,7 @@ public class GPSListener implements GoogleApiClient.ConnectionCallbacks, GoogleA
                     .build();
             // Create the LocationRequest object
             this.mLocationRequest = LocationRequest.create()
-                    .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY) //block level accuracy
+                    .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY) //street level accuracy
                     .setInterval(ParameterSettings.GPSPointsInterval) // 10 seconds, in milliseconds
                     .setFastestInterval(ParameterSettings.GPSPointsInterval/6); // 1 second, in milliseconds
         }
@@ -79,17 +80,16 @@ public class GPSListener implements GoogleApiClient.ConnectionCallbacks, GoogleA
      * @param mLastLocation
      */
     protected void readLocation(Location mLastLocation){
-//            DecimalFormat f = new DecimalFormat("##.00000");
-//            String lastRecord = String.valueOf(f.format(mLastLocation.getLatitude())) + "," + String.valueOf(f.format(mLastLocation.getLongitude()));
-//            String string = String.valueOf(mLastLocation.getLatitude()) + "," + String.valueOf(mLastLocation.getLongitude()) + "," + String.valueOf(mLastLocation.getAltitude()) + "," + String.valueOf(mLastLocation.getTime());
-            //        if(!lastRecord.equalsIgnoreCase(this.lastPoint)) {
-            //logText(string);
-            GpsPoint p = new GpsPoint(mLastLocation.getLongitude(), mLastLocation.getLatitude(), mLastLocation.getAltitude(), mLastLocation.getTime());
-            GpsDataObject DAO = GpsDataObject.GetInstance(this.context);
-            if(!DAO.isLocked())
-                DAO.Persist(p);
-            //this.lastPoint = lastRecord;
-//        }
+            DecimalFormat f = new DecimalFormat("##.000000000");
+            String newPoint = String.valueOf(f.format(mLastLocation.getLatitude())) + "," + String.valueOf(f.format(mLastLocation.getLongitude()))  + "," + String.valueOf(f.format(mLastLocation.getAltitude()));
+            if(!newPoint.equalsIgnoreCase(this.lastPoint)) {
+                GpsPoint p = new GpsPoint(mLastLocation.getLongitude(), mLastLocation.getLatitude(), mLastLocation.getAltitude(), mLastLocation.getTime());
+                GpsDataObject DAO = GpsDataObject.GetInstance(this.context);
+                if(!DAO.isLocked()) {
+                    DAO.Persist(p);
+                }
+                this.lastPoint = newPoint;
+            }
     }
 
     @Override
@@ -109,7 +109,12 @@ public class GPSListener implements GoogleApiClient.ConnectionCallbacks, GoogleA
 
     @Override
     public void onLocationChanged(Location mLastLocation) {
-        readLocation(mLastLocation);
+        LocationManager locationManager = (LocationManager) this.context.getSystemService(Context.LOCATION_SERVICE);
+
+        if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+            readLocation(mLastLocation);
+        }
+
     }
 
     @Override

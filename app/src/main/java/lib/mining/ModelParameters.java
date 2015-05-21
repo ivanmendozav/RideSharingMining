@@ -5,11 +5,12 @@ package lib.mining;
  */
 public class ModelParameters {
     //STAY POINTS
-    public static double distance_threshold = 0.10; //km. To look for points around a stay point
-    public static long time_threshold = 1800000; //milliseconds. To dwell around a stay point
+    public static double distance_threshold = 0.15; //km. To look for points around a stay point
+    public static long time_threshold = 600000; //milliseconds. To dwell around a stay point
     public static int cluster_size = 10; //integer. visits to a stay point before converting to a POI
     public static int earth_radius = 6371;
     public static String csv_stay_points = "stay_points.txt";
+    public static double merging_interval = 300000; //milliseconds
 
     //GENERAL SETTINGS
     public static String csv_delimiter = ","; //to parse a CSV file's line

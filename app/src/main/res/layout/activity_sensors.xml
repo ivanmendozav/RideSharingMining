@@ -15,7 +15,7 @@
         android:inputType="text"
         android:ems="10"
         android:id="@+id/txtId"
-        android:text="ivan.mendoza"
+        android:text=""
         android:layout_below="@+id/txtTitle"
         android:layout_centerHorizontal="true" />
 

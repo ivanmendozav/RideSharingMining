@@ -43,44 +43,69 @@ public class StayPointDataObject extends AbstractDataObject{
 
     /**
      * Store to database
-     * @param p
+     * @param newStay
      * @return
      */
-    public long Persist(StayPoint p){
-        StayPoint lastPosition = this.GetLastRecord();
-        if(lastPosition != null) {
-            if (lastPosition.IsSubsetOf(p)) { //if stay point already exists
-                lastPosition.setDeparture(p.getDeparture());
-                lastPosition.setCardinality(p.getCardinality());
-                this.Update(lastPosition);
+    public long Persist(StayPoint newStay){
+        StayPoint previousStay = this.GetLastRecord();
+        if(previousStay != null) {
+            //if stay point already exists from a previous scan
+            if (previousStay.IsSubsetOf(newStay)) {
+                previousStay.setDeparture(newStay.getDeparture());
+                previousStay.setCardinality(newStay.getCardinality());
+                previousStay.setAvg_longitude(newStay.getAvg_longitude());
+                previousStay.setAvg_latitude(newStay.getAvg_latitude());
+                this.Update(previousStay);
                 ContextManager.writeAppLog("Last stay time updated!");
-                return lastPosition.id;
+                return previousStay.id;
+            }
+            //if stay point already exists from an interruption (merge with new one)
+            if(newStay.IsExtensionOf(previousStay)){
+                previousStay.setDeparture(newStay.getDeparture());
+                previousStay.setCardinality(previousStay.getCardinality()+newStay.getCardinality());
+                //weighted average for update coordinates Wp = |sp| / |sp|+|sn|
+                double weight_newStay = newStay.getCardinality() / previousStay.getCardinality()+newStay.getCardinality();
+                double weight_previousStay = previousStay.getCardinality() / previousStay.getCardinality()+newStay.getCardinality();
+                double updated_longitude = weight_previousStay*previousStay.getAvg_longitude() + weight_newStay*newStay.getAvg_longitude();
+                double updated_latitude = weight_previousStay*previousStay.getAvg_latitude() + weight_newStay*newStay.getAvg_latitude();
+
+                previousStay.setAvg_longitude(updated_longitude);
+                previousStay.setAvg_latitude(updated_latitude);
+                this.Update(previousStay);
+                ContextManager.writeAppLog("Last stay merged!");
+                return previousStay.id;
             }
         }
         this.locked = true;
         SQLiteDatabase database = this.helper.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(COLUMN_AVG_LATITUDE, p.getAvg_latitude());
-        values.put(COLUMN_AVG_LONGITUDE, p.getAvg_longitude());
-        values.put(COLUMN_ARRIVAL, p.getArrival());
-        values.put(COLUMN_DEPARTURE, p.getDeparture());
-        values.put(COLUMN_CARDINALITY, p.getCardinality());
-        values.put(COLUMN_LABEL, p.getLabel());
-        values.put(COLUMN_START_LATITUDE, p.getStartPoint().getLatitude());
-        values.put(COLUMN_START_LONGITUDE, p.getStartPoint().getLongitude());
+        values.put(COLUMN_AVG_LATITUDE, newStay.getAvg_latitude());
+        values.put(COLUMN_AVG_LONGITUDE, newStay.getAvg_longitude());
+        values.put(COLUMN_ARRIVAL, newStay.getArrival());
+        values.put(COLUMN_DEPARTURE, newStay.getDeparture());
+        values.put(COLUMN_CARDINALITY, newStay.getCardinality());
+        values.put(COLUMN_LABEL, newStay.getLabel());
+        values.put(COLUMN_START_LATITUDE, newStay.getStartPoint().getLatitude());
+        values.put(COLUMN_START_LONGITUDE, newStay.getStartPoint().getLongitude());
         long _id = database.insert(StayPointDataObject.TABLE_NAME, null, values);
-        ContextManager.writeAppLog("Stay detected at " + p.getAvg_latitude() + " , " + p.getAvg_longitude());
+        ContextManager.writeAppLog("Stay detected at " + newStay.getAvg_latitude() + " , " + newStay.getAvg_longitude());
         this.locked = false;
         database.close();
         return _id;
     }
 
+    /**
+     * Update stay point attributes
+     * @param p
+     */
     public void Update(StayPoint p){
         this.locked = true;
         SQLiteDatabase database = this.helper.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_DEPARTURE, p.getDeparture());
         values.put(COLUMN_CARDINALITY, p.getCardinality());
+        values.put(COLUMN_AVG_LONGITUDE, p.getAvg_longitude());
+        values.put(COLUMN_AVG_LATITUDE, p.getAvg_latitude());
         database.update(StayPointDataObject.TABLE_NAME, values, AppSQLiteHelper.SQL_COLUMN_ID + "=" + p.id, null);
         this.locked = false;
         database.close();

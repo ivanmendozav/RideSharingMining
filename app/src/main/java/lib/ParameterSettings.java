@@ -12,4 +12,5 @@ public class ParameterSettings {
     public static String LogFile = "error_log.txt";
     public static int LastEvents = 10; //number of last events to display when starting the app
     public static int StayPointsSensorID = 100; //pseudo sensor id to identify data from stay points detector
+    public static String default_user = "test";
 }

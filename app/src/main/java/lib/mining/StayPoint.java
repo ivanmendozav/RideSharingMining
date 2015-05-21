@@ -1,5 +1,8 @@
 package lib.mining;
 
+import java.util.Iterator;
+import java.util.List;
+
 /**
  * Created by Ivan on 05/05/2015.
  * A Stay point S is defined as a virtual space region defined by |S| points(pm,..po) where a user has spend a long amount of time.
@@ -22,6 +25,7 @@ public class StayPoint {
     protected String label; //optional description (if filled in by the user)
     protected GpsPoint startPoint = null; //pm
     protected long stay_time;
+    protected List<GpsPoint> points;
     public long id; //for database storage
 
     /**
@@ -84,6 +88,22 @@ public class StayPoint {
         this.cardinality = cardinality;
     }
 
+    public void setAvg_latitude(double avg_latitude) {
+        this.avg_latitude = avg_latitude;
+    }
+
+    public void setAvg_longitude(double avg_longitude) {
+        this.avg_longitude = avg_longitude;
+    }
+
+    public List<GpsPoint> getPoints() {
+        return points;
+    }
+
+    public void setPoints(List<GpsPoint> points) {
+        this.points = points;
+    }
+
     /**
      * Tells whether two stay points in log G start from the same start_point.
      * sp1.start = sp2.start, sp1.departure < sp2.departure, and sp1 & sp2 belongs to G
@@ -92,11 +112,34 @@ public class StayPoint {
      * @return
      */
     public boolean IsSubsetOf(StayPoint set){
-        if ((this.departure < set.getDeparture()) && (this.startPoint.IsSameAs(set.getStartPoint()))) {
+        if ((this.departure <= set.getDeparture()) && (this.startPoint.IsSameAs(set.getStartPoint()))) {
             return true;
         }
         else {
             return false;
         }
+    }
+
+    /**
+     * Tells whether two consecutive stay points in log G can be merged into the same point.
+     * sp1.departure_time ~ sp2.start_time, dist(sp1.arrival_point,sp2.points) still lower than Dth,
+     * and sp1 & sp2 belongs to G then sp2 is a extension of sp2.
+     * Where sp.start_time = pm.timestamp, sp.departure_time = po.timestamp, sp.points = all points from pm-po in sp
+     * @param previousPoint
+     * @return
+     */
+    public boolean IsExtensionOf(StayPoint previousPoint){
+        if (this.arrival - previousPoint.getDeparture() <= ModelParameters.merging_interval){
+            Iterator<GpsPoint> it = this.getPoints().iterator();
+            boolean reachable = true; //if all points are reachable
+            while(it.hasNext()){
+                if(ModelFormulas.GCDistance(previousPoint.getStartPoint(),it.next()) > ModelParameters.distance_threshold){
+                    reachable = false;
+                }
+            }
+            if(reachable)
+                return true;
+        }
+        return false;
     }
 }

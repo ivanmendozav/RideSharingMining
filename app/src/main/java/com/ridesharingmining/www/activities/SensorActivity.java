@@ -13,6 +13,9 @@ import android.widget.TextView;
 import java.util.Calendar;
 
 import lib.ContextManager;
+import lib.ParameterSettings;
+import lib.db.AppSQLiteHelper;
+import lib.db.PrefeDataObject;
 import services.SensorService;
 
 /**
@@ -36,6 +39,19 @@ public class SensorActivity extends Activity{// implements SensorEventListener {
             this.onClickStart(true);
         }
         this.updateLog();
+        this.startSession();
+    }
+
+    /**
+     * Retrieve last user using the service
+     */
+    private void startSession() {
+        EditText txtUser = (EditText) findViewById(R.id.txtId);
+        PrefeDataObject preferences = PrefeDataObject.GetInstance(this);
+        String stored_user = preferences.Get("user");
+        if(stored_user == null){
+            txtUser.setText(ParameterSettings.default_user);
+        }else{txtUser.setText(stored_user);}
     }
 
     /**
@@ -82,6 +98,7 @@ public class SensorActivity extends Activity{// implements SensorEventListener {
         start_button.setText(R.string.stop);
         title.setText(R.string.sensing);
     }
+
 
     /**
      * Change UI according to nwe state

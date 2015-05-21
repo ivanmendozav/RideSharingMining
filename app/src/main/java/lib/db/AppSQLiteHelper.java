@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 public class AppSQLiteHelper extends SQLiteOpenHelper {
     public static final String SQL_DATABASE_NAME = "ride_mining.db";
-    public static final int SQL_DATABASE_VERSION = 3;
+    public static final int SQL_DATABASE_VERSION = 1;
     public static final String SQL_COLUMN_ID = "_id";
 
 
@@ -34,6 +34,12 @@ public class AppSQLiteHelper extends SQLiteOpenHelper {
             + StayPointDataObject.COLUMN_START_LATITUDE + " real not null, "
             + StayPointDataObject.COLUMN_START_LONGITUDE + " real not null);";
 
+    public static final String SQL_CREATION_SCRIPT_3 =
+            "create table if not exists " + PrefeDataObject.TABLE_NAME + " ("
+                    + SQL_COLUMN_ID + " integer primary key autoincrement, "
+                    + PrefeDataObject.COLUMN_NAME + " string not null, "
+                    + PrefeDataObject.COLUMN_VALUE + " string not null);";
+
     public AppSQLiteHelper(Context context) {
         super(context, SQL_DATABASE_NAME, null, SQL_DATABASE_VERSION);
     }
@@ -42,6 +48,7 @@ public class AppSQLiteHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(SQL_CREATION_SCRIPT);
         db.execSQL(SQL_CREATION_SCRIPT_2);
+        db.execSQL(SQL_CREATION_SCRIPT_3);
     }
 
     @Override

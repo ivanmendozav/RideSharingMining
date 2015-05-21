@@ -14,6 +14,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
 
+import listeners.GPSListener;
+
 /**
  * Created by Ivan on 05/05/2015.
  */
@@ -59,6 +61,34 @@ public class CsvParser {
             while(it.hasNext()){
                 StayPoint s = it.next();
                 string = s.getAvg_longitude()+","+s.getAvg_latitude()+","+s.getArrival()+","+s.getDeparture()+","+s.getCardinality()+","+s.getLabel()+","+s.getStartPoint().getLongitude()+","+s.getStartPoint().getLatitude()+ ","+s.id;
+                out.write(string +"\n"); //CSV format with line break between measures
+            }
+            out.close();
+            filewriter.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Creates or appends to an existing CSV file of gps points
+     * @param gps_points
+     */
+    public static void PersistGpsPoints(List<GpsPoint> gps_points){
+        try {
+            String filename = GPSListener.getFileName();
+            String dirname = Environment.getExternalStorageDirectory().getPath()+"/Documents/";
+            String string = "";
+
+            File file = new File(dirname+filename);
+            file.createNewFile(); //create if doesn't exist
+            FileWriter filewriter = new FileWriter(dirname+filename, true); //true for append
+            BufferedWriter out = new BufferedWriter(filewriter);
+
+            Iterator<GpsPoint> it = gps_points.iterator();
+            while(it.hasNext()){
+                GpsPoint p = it.next();
+                string = p.getLatitude()+","+p.getLongitude()+","+p.getAltitude()+","+p.getTimestamp();
                 out.write(string +"\n"); //CSV format with line break between measures
             }
             out.close();

@@ -22,19 +22,5 @@ public class ModelFormulas {
         double distance = r*delta;
         return distance;
     }
-    /**
-     * AVOID TO USE: Only for testing (not real distance, use great-circle distance instead)
-     * Euclidean distance between two GPS points
-     * For 2 dimensions : pithagorean distance
-     * @param p1
-     * @param p2
-     */
-    public static double EDistance(GpsPoint p1, GpsPoint p2){
-        double lat1 = p1.getLatitude();
-        double lon1 = p1.getLongitude();
-        double lat2 = p2.getLatitude();
-        double lon2 = p2.getLongitude();
 
-        return Math.sqrt(Math.pow(lat1-lat2,2) + Math.pow(lon1-lon2,2));
-    }
 }

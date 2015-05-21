@@ -61,12 +61,12 @@ public class GpsDataObject {
      * GetAll all points in database
      * @return
      */
-    public List<GpsPoint> GetAll(){
+    public List<GpsPoint> GetAll(String where){
         this.locked = true;
         SQLiteDatabase database = this.helper.getReadableDatabase();
         List<GpsPoint> list = new ArrayList<>();
         String[] fields = new String[] {COLUMN_LONGITUDE, COLUMN_LATITUDE,COLUMN_ALTITUDE,COLUMN_TIMESTAMP};
-        Cursor c = database.query(GpsDataObject.TABLE_NAME, fields, null, null, null, null, null);
+        Cursor c = database.query(GpsDataObject.TABLE_NAME, fields, where, null, null, null, null);
 
     //If there are records
         if (c.moveToFirst()) {
