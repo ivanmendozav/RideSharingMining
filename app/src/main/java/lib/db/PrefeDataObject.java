@@ -48,16 +48,22 @@ public class PrefeDataObject {
      * @return
      */
     public long Set(String name, String value){
-        this.locked = true;
-        SQLiteDatabase database = this.helper.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(PrefeDataObject.COLUMN_NAME, name);
-        values.put(PrefeDataObject.COLUMN_VALUE, value);
+        String stored_user = this.Get(name);
+        if(stored_user == null){
+            this.locked = true;
+            SQLiteDatabase database = this.helper.getWritableDatabase();
+            ContentValues values = new ContentValues();
+            values.put(PrefeDataObject.COLUMN_NAME, name);
+            values.put(PrefeDataObject.COLUMN_VALUE, value);
 
-        long _id = database.insert(PrefeDataObject.TABLE_NAME, null, values);
-        this.locked = false;
-        database.close();
-        return _id;
+            long _id = database.insert(PrefeDataObject.TABLE_NAME, null, values);
+            this.locked = false;
+            database.close();
+            return _id;
+        }else{
+            this.Update(name, value);
+            return 0;
+        }
     }
 
     /**

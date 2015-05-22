@@ -27,6 +27,7 @@ public class FileUploader extends AsyncTask<String, Void, String> {
     protected String WEB_SERVER_URL = ParameterSettings.ServerUrl;
     protected List<String> files = new ArrayList<>(); //all file names
     protected List<Integer> IDs = new ArrayList<>(); //all sensor ids
+    protected UploaderListener listener = null;
     private String username = "anonymous";
 
     @Override
@@ -55,7 +56,9 @@ public class FileUploader extends AsyncTask<String, Void, String> {
     protected void registerFile(String filename){
         this.files.add(filename);
     }
-
+    public void registerListener(UploaderListener listener){
+        this.listener = listener;
+    }
     protected void registerSensorID(int sensorID){
         this.IDs.add(sensorID);
     }
@@ -139,7 +142,8 @@ public class FileUploader extends AsyncTask<String, Void, String> {
                 }
                 response_text = sb.toString();
                 ContextManager.writeAppLog(response_text);
-                //System.out.println(response_text);
+                if(this.listener != null)
+                    this.listener.OnResponse(response_text);
                 is.close();
             }
             fileInputStream.close();

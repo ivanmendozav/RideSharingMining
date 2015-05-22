@@ -14,8 +14,11 @@ import java.util.Calendar;
 
 import lib.ContextManager;
 import lib.ParameterSettings;
+import lib.UserData;
 import lib.db.AppSQLiteHelper;
 import lib.db.PrefeDataObject;
+import lib.mining.GpsPoint;
+import lib.mining.ModelFormulas;
 import services.SensorService;
 
 /**
@@ -31,6 +34,7 @@ public class SensorActivity extends Activity{// implements SensorEventListener {
      * Prepare for first run (or coming from a notification)
      */
     public final void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sensors);
         this.contextManager = new ContextManager(this);
@@ -47,8 +51,7 @@ public class SensorActivity extends Activity{// implements SensorEventListener {
      */
     private void startSession() {
         EditText txtUser = (EditText) findViewById(R.id.txtId);
-        PrefeDataObject preferences = PrefeDataObject.GetInstance(this);
-        String stored_user = preferences.Get("user");
+        String stored_user = UserData.Get(this, "user");
         if(stored_user == null){
             txtUser.setText(ParameterSettings.default_user);
         }else{txtUser.setText(stored_user);}

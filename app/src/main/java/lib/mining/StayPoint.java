@@ -112,7 +112,7 @@ public class StayPoint {
      * @return
      */
     public boolean IsSubsetOf(StayPoint set){
-        if ((this.departure <= set.getDeparture()) && (this.startPoint.IsSameAs(set.getStartPoint()))) {
+        if ((this.departure < set.getDeparture()) && (this.startPoint.IsSameAs(set.getStartPoint()))) {
             return true;
         }
         else {
@@ -139,6 +139,18 @@ public class StayPoint {
             }
             if(reachable)
                 return true;
+        }
+        return false;
+    }
+
+    /**
+     * Identify ghost points (duplicates because of some points are not purged yet)
+     * @param previousPoint
+     * @return
+     */
+    public boolean IsDuplicate(StayPoint previousPoint){
+        if(this.arrival == previousPoint.getArrival() && this.departure == previousPoint.getDeparture() && this.avg_latitude == previousPoint.getAvg_latitude() && this.avg_longitude == previousPoint.getAvg_longitude() && this.cardinality == previousPoint.getCardinality()){
+            return true;
         }
         return false;
     }

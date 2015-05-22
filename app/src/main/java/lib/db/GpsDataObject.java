@@ -59,14 +59,20 @@ public class GpsDataObject {
 
     /**
      * GetAll all points in database
+     * @param lastTimeStamp where timestamp > lastTimeStamp
      * @return
      */
-    public List<GpsPoint> GetAll(String where){
+    public List<GpsPoint> GetAll(String lastTimeStamp){
         this.locked = true;
         SQLiteDatabase database = this.helper.getReadableDatabase();
         List<GpsPoint> list = new ArrayList<>();
         String[] fields = new String[] {COLUMN_LONGITUDE, COLUMN_LATITUDE,COLUMN_ALTITUDE,COLUMN_TIMESTAMP};
-        Cursor c = database.query(GpsDataObject.TABLE_NAME, fields, where, null, null, null, null);
+        Cursor c;
+
+        if(lastTimeStamp!=null)
+            c = database.query(GpsDataObject.TABLE_NAME, fields, COLUMN_TIMESTAMP+">="+lastTimeStamp, null, null, null, null);
+        else
+            c = database.query(GpsDataObject.TABLE_NAME, fields,null, null, null, null, null);
 
     //If there are records
         if (c.moveToFirst()) {

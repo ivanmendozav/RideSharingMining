@@ -75,6 +75,9 @@ public class StayPointDataObject extends AbstractDataObject{
                 ContextManager.writeAppLog("Last stay merged!");
                 return previousStay.id;
             }
+            if(previousStay.IsDuplicate(newStay)){
+                return previousStay.id;
+            }
         }
         this.locked = true;
         SQLiteDatabase database = this.helper.getWritableDatabase();

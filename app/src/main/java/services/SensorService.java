@@ -9,7 +9,6 @@ import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
-import android.widget.EditText;
 
 import com.ridesharingmining.www.activities.R;
 import com.ridesharingmining.www.activities.SensorActivity;
@@ -22,6 +21,8 @@ import java.util.TimerTask;
 import lib.ContextManager;
 import lib.FileUploader;
 import lib.ParameterSettings;
+import lib.UploaderListener;
+import lib.UserData;
 import lib.db.GpsDataObject;
 import lib.db.PrefeDataObject;
 import lib.db.StayPointDataObject;
@@ -83,8 +84,19 @@ public class SensorService extends Service {
      * Run the service (start listening)
      */
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Bundle b = intent.getExtras();
-        this.username = b.getString("USERNAME");
+        //started from activity
+        if(intent!=null) {
+            Bundle b = intent.getExtras();
+            this.username = b.getString("USERNAME");
+        }else{ //otherwise take user from the database
+            PrefeDataObject preferences = PrefeDataObject.GetInstance(this);
+            String stored_user = preferences.Get("user");
+            if(stored_user!= null){
+                this.username = stored_user;
+            }else{
+                this.username = ParameterSettings.default_user;
+            }
+        }
 
         super.onStartCommand(intent,flags,startId);
         this.displayNotificationIcon();
@@ -121,11 +133,12 @@ public class SensorService extends Service {
      */
     public synchronized static void mineData(Context context){
         //Get stay points on client
-        boolean debug = ModelParameters.debug_mode;
+        //boolean debug = ModelParameters.debug_mode;
         GpsLog gps_log = new GpsLog();
         GpsDataObject gps_DAO = GpsDataObject.GetInstance(context);
         if(!gps_DAO.isLocked()) {
-            gps_log.setGps_points(gps_DAO.GetAll(null));
+            //from last checkpoint
+            gps_log.setGps_points(gps_DAO.GetAll(UserData.Get(context,"lastStayCheckpoint")));
             if (gps_log.length() > 0) {
                 //store stay points in database
                 List<StayPoint> stay_points = gps_log.GetStayPoints(0, gps_log.length());
@@ -136,16 +149,17 @@ public class SensorService extends Service {
                     StayPoint sp = it.next();
                     sp.id = stay_point_DAO.Persist(sp); //add new stay point (or update last one)
                 }
-                 //backup delete all processed data before last stay point
+                 //backup processed data and save last checkPoint before last stay point
                 if(stay_points.size() > 0) {
                     long lastStop = stay_points.get(stay_points.size() - 1).getArrival();
                     stay_points = null; //release memory
+                    UserData.Set(context, "lastStayCheckpoint", String.valueOf(lastStop));
                     //backup gsp points to server
                     SensorService.uploadTracesToCloud(context, username, lastStop);
 
-                    int affected = gps_DAO.Purge(lastStop);
-                    if (affected > 0){
-                        if(debug) ContextManager.writeAppLog(affected + " points were purged.");}
+//                    int affected = gps_DAO.Purge(lastStop);
+//                    if (affected > 0){
+//                        if(debug) ContextManager.writeAppLog(affected + " points were purged.");}
                 }
                 //upload stay points to server
                 SensorService.uploadStaysToCloud(context, username);
@@ -177,10 +191,33 @@ public class SensorService extends Service {
     public synchronized static void uploadTracesToCloud(Context context, String username, long timestamp){
         String filename = GPSListener.getFileName();
         GpsDataObject DAO = GpsDataObject.GetInstance(context);
-        List<GpsPoint> gps_points = DAO.GetAll(null);
+        final Context c = context;
+
+        String lastBackupPoint = UserData.Get(context,"lastBackupPoint"); //timestamp of last backup
+
+        List<GpsPoint> gps_points = DAO.GetAll(lastBackupPoint);
         if(gps_points.size()>0) {
             CsvParser.PersistGpsPoints(gps_points);
+            final String nextBackupPoint = String.valueOf(gps_points.get(gps_points.size()-1).getTimestamp());
             FileUploader _uploader = new FileUploader();
+            //update backup point after uploading files
+            _uploader.registerListener(new UploaderListener() {
+                @Override
+                public void OnResponse(String response) {
+                    UserData.Set(c,"lastBackupPoint",nextBackupPoint);
+                    long lastStayCheckpoint = Long.parseLong(UserData.Get(c,"lastStayCheckpoint"));
+                    long toLong = Long.parseLong(nextBackupPoint);
+                    boolean debug = ModelParameters.debug_mode;
+
+                    if(toLong > lastStayCheckpoint){
+                        GpsDataObject DAO = GpsDataObject.GetInstance(c);
+                        int affected = DAO.Purge(lastStayCheckpoint);
+                        if (affected > 0){
+                            if(debug) ContextManager.writeAppLog(affected + " points were purged.");
+                        }
+                    }
+                }
+            });
             synchronized (_uploader) {
                 _uploader.uploadFile(username, filename, GPSListener.getType()); //file will be removed here
             }
@@ -191,11 +228,7 @@ public class SensorService extends Service {
      * Store username in database for further use in next session
      */
     private void rememberUser() {
-        PrefeDataObject preferences = PrefeDataObject.GetInstance(this);
-        String stored_user = preferences.Get("user");
-        if(stored_user == null){
-            preferences.Set("user", username);
-        }else{preferences.Update("user", username);}
+        UserData.Set(this,"user", this.username);
     }
 
     /**
@@ -256,6 +289,7 @@ public class SensorService extends Service {
     protected void removeNotificationIcon(){
         NotificationManager mNotifyMgr =  (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         mNotifyMgr.cancel(R.id.notification_id);
+        mNotifyMgr.cancelAll();
     }
 
 
