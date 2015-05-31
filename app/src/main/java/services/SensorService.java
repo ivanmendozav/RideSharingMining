@@ -143,24 +143,21 @@ public class SensorService extends Service {
                 //store stay points in database
                 List<StayPoint> stay_points = gps_log.GetStayPoints(0, gps_log.length());
                 gps_log = null; //release memory
-                StayPointDataObject stay_point_DAO = StayPointDataObject.GetInstance(context);
-                Iterator<StayPoint> it = stay_points.iterator();
-                while(it.hasNext()){
-                    StayPoint sp = it.next();
-                    sp.id = stay_point_DAO.Persist(sp); //add new stay point (or update last one)
-                }
-                 //backup processed data and save last checkPoint before last stay point
+
                 if(stay_points.size() > 0) {
+                    StayPointDataObject stay_point_DAO = StayPointDataObject.GetInstance(context);
+                    Iterator<StayPoint> it = stay_points.iterator();
+                    while(it.hasNext()){
+                        StayPoint sp = it.next();
+                        sp.id = stay_point_DAO.Persist(sp); //add new stay point (or update last one)
+                    }
+                    //backup processed data and save last checkPoint before last stay point
                     long lastStop = stay_points.get(stay_points.size() - 1).getArrival();
                     stay_points = null; //release memory
                     UserData.Set(context, "lastStayCheckpoint", String.valueOf(lastStop));
-                    //backup gsp points to server
-                    SensorService.uploadTracesToCloud(context, username, lastStop);
-
-//                    int affected = gps_DAO.Purge(lastStop);
-//                    if (affected > 0){
-//                        if(debug) ContextManager.writeAppLog(affected + " points were purged.");}
                 }
+                //backup gsp points to server
+                SensorService.uploadTracesToCloud(context, username);
                 //upload stay points to server
                 SensorService.uploadStaysToCloud(context, username);
             }
@@ -175,11 +172,23 @@ public class SensorService extends Service {
     public synchronized static void uploadStaysToCloud(Context context, String username){
         String filename = ModelParameters.csv_stay_points;
         StayPointDataObject DAO = StayPointDataObject.GetInstance(context);
-        List<StayPoint> stay_points = DAO.GetAll();
-        CsvParser.PersistStayPoints(stay_points);
-        FileUploader _uploader = new FileUploader();
-        synchronized (_uploader) {
-            _uploader.uploadFile(username,filename, ParameterSettings.StayPointsSensorID); //file will be removed here
+        final Context c = context;
+        List<StayPoint> stay_points = DAO.GetAll(UserData.Get(context,"lastStayBackup"));
+
+        if(stay_points.size()>0) {
+            final String lastStayBackup = String.valueOf(stay_points.get(stay_points.size()-1).getArrival());
+            CsvParser.PersistStayPoints(stay_points);
+            FileUploader _uploader = new FileUploader();
+            //update backup point after uploading files
+            _uploader.registerListener(new UploaderListener() {
+                @Override
+                public void OnResponse(String response) {
+                    UserData.Set(c,"lastStayBackup",lastStayBackup);
+                }
+            });
+            synchronized (_uploader) {
+                _uploader.uploadFile(username, filename, ParameterSettings.StayPointsSensorID); //file will be removed here
+            }
         }
     }
 
@@ -188,7 +197,7 @@ public class SensorService extends Service {
      * @param context
      * @param username
      */
-    public synchronized static void uploadTracesToCloud(Context context, String username, long timestamp){
+    public synchronized static void uploadTracesToCloud(Context context, String username){
         String filename = GPSListener.getFileName();
         GpsDataObject DAO = GpsDataObject.GetInstance(context);
         final Context c = context;
@@ -209,7 +218,7 @@ public class SensorService extends Service {
                     long toLong = Long.parseLong(nextBackupPoint);
                     boolean debug = ModelParameters.debug_mode;
 
-                    if(toLong > lastStayCheckpoint){
+                    if(toLong > lastStayCheckpoint){ //if gps points to last stay have been backed up
                         GpsDataObject DAO = GpsDataObject.GetInstance(c);
                         int affected = DAO.Purge(lastStayCheckpoint);
                         if (affected > 0){

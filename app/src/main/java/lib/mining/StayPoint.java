@@ -129,7 +129,7 @@ public class StayPoint {
      * @return
      */
     public boolean IsExtensionOf(StayPoint previousPoint){
-        if (this.arrival - previousPoint.getDeparture() <= ModelParameters.merging_interval){
+        if (Math.abs(this.arrival - previousPoint.getDeparture()) <= ModelParameters.merging_interval){
             Iterator<GpsPoint> it = this.getPoints().iterator();
             boolean reachable = true; //if all points are reachable
             while(it.hasNext()){

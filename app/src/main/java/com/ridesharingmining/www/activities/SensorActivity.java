@@ -34,7 +34,6 @@ public class SensorActivity extends Activity{// implements SensorEventListener {
      * Prepare for first run (or coming from a notification)
      */
     public final void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sensors);
         this.contextManager = new ContextManager(this);

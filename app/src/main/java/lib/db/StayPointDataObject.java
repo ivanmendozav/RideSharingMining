@@ -50,34 +50,38 @@ public class StayPointDataObject extends AbstractDataObject{
         StayPoint previousStay = this.GetLastRecord();
         if(previousStay != null) {
             //if stay point already exists from a previous scan
-            if (previousStay.IsSubsetOf(newStay)) {
-                previousStay.setDeparture(newStay.getDeparture());
-                previousStay.setCardinality(newStay.getCardinality());
-                previousStay.setAvg_longitude(newStay.getAvg_longitude());
-                previousStay.setAvg_latitude(newStay.getAvg_latitude());
-                this.Update(previousStay);
-                ContextManager.writeAppLog("Last stay time updated!");
-                return previousStay.id;
-            }
-            //if stay point already exists from an interruption (merge with new one)
-            if(newStay.IsExtensionOf(previousStay)){
-                previousStay.setDeparture(newStay.getDeparture());
-                previousStay.setCardinality(previousStay.getCardinality()+newStay.getCardinality());
-                //weighted average for update coordinates Wp = |sp| / |sp|+|sn|
-                double weight_newStay = newStay.getCardinality() / previousStay.getCardinality()+newStay.getCardinality();
-                double weight_previousStay = previousStay.getCardinality() / previousStay.getCardinality()+newStay.getCardinality();
-                double updated_longitude = weight_previousStay*previousStay.getAvg_longitude() + weight_newStay*newStay.getAvg_longitude();
-                double updated_latitude = weight_previousStay*previousStay.getAvg_latitude() + weight_newStay*newStay.getAvg_latitude();
-
-                previousStay.setAvg_longitude(updated_longitude);
-                previousStay.setAvg_latitude(updated_latitude);
-                this.Update(previousStay);
-                ContextManager.writeAppLog("Last stay merged!");
-                return previousStay.id;
-            }
             if(previousStay.IsDuplicate(newStay)){
                 return previousStay.id;
             }
+            else
+                if (previousStay.IsSubsetOf(newStay)) {
+                    previousStay.setDeparture(newStay.getDeparture());
+                    previousStay.setCardinality(newStay.getCardinality());
+                    previousStay.setAvg_longitude(newStay.getAvg_longitude());
+                    previousStay.setAvg_latitude(newStay.getAvg_latitude());
+                    this.Update(previousStay);
+                    ContextManager.writeAppLog("android: Last stay time updated at "+newStay.getAvg_latitude()+","+newStay.getAvg_longitude());
+                    return previousStay.id;
+                }
+                else
+                    //if stay point already exists from an interruption (merge with new one)
+                    if(newStay.IsExtensionOf(previousStay)){
+
+                        //weighted average for update coordinates Wp = |sp| / |sp|+|sn|
+                        double weight_newStay = ((double) newStay.getCardinality()) / ((double)(previousStay.getCardinality()+newStay.getCardinality()));
+                        double weight_previousStay = 1 - weight_newStay;
+                        double updated_longitude = weight_previousStay*previousStay.getAvg_longitude() + weight_newStay*newStay.getAvg_longitude();
+                        double updated_latitude = weight_previousStay*previousStay.getAvg_latitude() + weight_newStay*newStay.getAvg_latitude();
+
+                        previousStay.setAvg_longitude(updated_longitude);
+                        previousStay.setAvg_latitude(updated_latitude);
+                        previousStay.setDeparture(newStay.getDeparture());
+                        previousStay.setCardinality(previousStay.getCardinality()+newStay.getCardinality());
+                        this.Update(previousStay);
+                        ContextManager.writeAppLog("android: Last stay merged at "+updated_latitude+","+updated_longitude);
+                        return previousStay.id;
+                    }
+
         }
         this.locked = true;
         SQLiteDatabase database = this.helper.getWritableDatabase();
@@ -116,14 +120,19 @@ public class StayPointDataObject extends AbstractDataObject{
 
     /**
      * GetAll all points in database
+     * @param lastTimeStamp where timestamp > lastTimeStamp
      * @return
      */
-    public List<StayPoint> GetAll(){
-        this.locked = true;
+    public List<StayPoint> GetAll(String lastTimeStamp){
+        this.locked = true; Cursor c;
         SQLiteDatabase database = this.helper.getReadableDatabase();
         List<StayPoint> list = new ArrayList<>();
         String[] fields = new String[] {AppSQLiteHelper.SQL_COLUMN_ID,COLUMN_AVG_LONGITUDE,COLUMN_AVG_LATITUDE,COLUMN_ARRIVAL,COLUMN_DEPARTURE,COLUMN_CARDINALITY,COLUMN_LABEL,COLUMN_START_LATITUDE, COLUMN_START_LONGITUDE};
-        Cursor c = database.query(StayPointDataObject.TABLE_NAME, fields, null, null, null, null, null);
+
+        if(lastTimeStamp!=null)
+            c = database.query(StayPointDataObject.TABLE_NAME, fields, StayPointDataObject.COLUMN_ARRIVAL+">="+lastTimeStamp, null, null, null, null);
+        else
+            c = database.query(StayPointDataObject.TABLE_NAME, fields, null, null, null, null, null);
 
     //If there are records
         if (c.moveToFirst()) {
@@ -153,11 +162,19 @@ public class StayPointDataObject extends AbstractDataObject{
      * @return
      */
     public StayPoint GetLastRecord(){
-        List<StayPoint> list = this.GetAll();
-        StayPoint p = null;
-        if(list.size() > 0){
-            p = list.get(list.size()-1);
-        }
-        return p;
+        this.locked = true; Cursor c;
+        SQLiteDatabase database = this.helper.getReadableDatabase();
+        String[] fields = new String[] {"MAX("+StayPointDataObject.COLUMN_ARRIVAL+")"};
+        c = database.query(StayPointDataObject.TABLE_NAME, fields, null, null, null, null, null);
+        if (c.moveToFirst()) {
+           long max_arrival = c.getLong(0);
+            List<StayPoint> list = this.GetAll(String.valueOf(max_arrival));
+            StayPoint p = null;
+            if(list.size() > 0){
+                p = list.get(list.size()-1);
+            }
+            return p;
+         }
+        return null;
     }
 }

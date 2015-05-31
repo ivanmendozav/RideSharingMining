@@ -103,8 +103,7 @@ public class GpsLog {
                     StayPoint stay = new StayPoint(avg_longitude,avg_latitude,arrival,departure,cardinality, "", pm);
                     stay.setPoints(subset_log.getGps_points());
                     stay_points.add(stay);
-                    if(debug){ ContextManager.writeAppLog("Stay point:" + arrival + "-->" + departure + " :" + avg_latitude + "," +
-                            avg_longitude + "(" + stay_time + "ms)");}
+                    //if(debug){ ContextManager.writeAppLog("Stay point:" + arrival + "-->" + departure + " :" + avg_latitude + "," + avg_longitude + "(" + stay_time + "ms)");}
                 }
             }
             m = i; // proceed searching from last visited point

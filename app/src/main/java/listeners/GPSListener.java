@@ -109,11 +109,11 @@ public class GPSListener implements GoogleApiClient.ConnectionCallbacks, GoogleA
 
     @Override
     public void onLocationChanged(Location mLastLocation) {
-        LocationManager locationManager = (LocationManager) this.context.getSystemService(Context.LOCATION_SERVICE);
+       // LocationManager locationManager = (LocationManager) this.context.getSystemService(Context.LOCATION_SERVICE);
 
-        if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+        //if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
             readLocation(mLastLocation);
-        }
+        //}
 
     }
 
