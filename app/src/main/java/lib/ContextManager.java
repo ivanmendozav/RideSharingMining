@@ -175,6 +175,10 @@ public class ContextManager {
             String sdcardPath = external.getPath();
             String filename = ParameterSettings.LogFile;
             File file = new File(sdcardPath+"/Documents/"+filename);
+            File dir = new File(sdcardPath+"/Documents");
+
+            if (!dir.isDirectory())
+                dir.mkdirs(); //create all necessary directories
 
             file.createNewFile();
             FileWriter filewriter = new FileWriter(sdcardPath+"/Documents/"+filename, true); //true for append

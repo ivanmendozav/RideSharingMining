@@ -173,7 +173,8 @@ public class SensorService extends Service {
         String filename = ModelParameters.csv_stay_points;
         StayPointDataObject DAO = StayPointDataObject.GetInstance(context);
         final Context c = context;
-        List<StayPoint> stay_points = DAO.GetAll(UserData.Get(context,"lastStayBackup"));
+        //List<StayPoint> stay_points = DAO.GetAll(UserData.Get(context,"lastStayBackup"));
+        List<StayPoint> stay_points = DAO.GetAll(null);
 
         if(stay_points.size()>0) {
             final String lastStayBackup = String.valueOf(stay_points.get(stay_points.size()-1).getArrival());
